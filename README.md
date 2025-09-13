@@ -1,5 +1,7 @@
 # Ligue1
 
+SALUT 
+
 There are three folder:
 - One that would calculate the emissions emitted by planes (let's name it plane folder)
 - One that would calculate the emissions emitted by train or a bus  (let's name it train folder)
