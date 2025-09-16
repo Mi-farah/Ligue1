@@ -1,6 +1,5 @@
 # Ligue1
 
-SALUT 
 
 There are three folder:
 - One that would calculate the emissions emitted by planes (let's name it plane folder)
@@ -14,3 +13,9 @@ For website folder, you need to run first get_excel_file.py and then run Buildin
 Once I have more time, I can go into more details about the differents files.
 
 I'm so sorry for the variables names: it's a mix of english and french, and there is absolutely no logic why some are named in english and other in french...
+
+
+
+
+# Canva
+https://www.canva.com/design/DAGy-h34o-I/DCBP1RMlxsxb_0Zuwp7KOg/view?utm_content=DAGy-h34o-I&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h84e942bece
