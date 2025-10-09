@@ -57,7 +57,7 @@ for i in data_df.index:
 df_final=pd.DataFrame([])
 
 
-df_final["trajet"]=l_trajet
+df_final["trajet"]=l_trajet 
 df_final["distance"]=l_distance
 df_final["time"]=l_time
 df_final["emission"]=l_emission

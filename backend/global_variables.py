@@ -35,10 +35,10 @@ class GoogleMapsUrls(Enum):
 ## CO2 emissions calculations variables
 
 # General
-NUMBER_OF_PASSENGERS = 70 # Number of passengers (team + staff)
+NUMBER_OF_PASSENGERS = 50 # Number of passengers (team + staff)
 
 # Car
-AUTO_CAR_EMISSION_FACTOR = 0.0744  # kgCO2/passenger/km (https://chair-energy-prosperity.org/wp-content/uploads/2019/01/emissions-de-co2-par-mode-de-transport.pdf)
+AUTO_CAR_EMISSION_FACTOR = 0.030  # kgCO2/passenger/km (https://bigmedia.bpifrance.fr/nos-dossiers/empreinte-carbone-des-trajets-en-train-calcul-et-decarbonation)
 
 # Train
 TRAIN_EMISSION_FACTOR = 0.0091375  # kgCO2/passenger/km (https://bigmedia.bpifrance.fr/nos-dossiers/empreinte-carbone-des-trajets-en-train-calcul-et-decarbonation)

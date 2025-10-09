@@ -23,8 +23,11 @@ class PlaneTrajetService(BaseTransportService):
         self.fuel_consumption_intercept = 282.8615  # kg
         
         # Time calculation coefficients (Not checked yet)
-        self.time_plane_coef = 0.285387849787546 # h/km
-        self.time_plane_intercept = 0.00120352141554664 # h
+        self.time_plane_coef = 0.00120352141554664 # h/km
+        self.time_plane_intercept = 0.285387849787546 # h
+
+        # Multiplication factor for other then fuel emission of plane (https://bigmedia.bpifrance.fr/sites/default/files/inline-images/sncf%202.png)
+        self.multiplication_factor_other_than_fuel = 260/141
 
     def is_real_airport(self, place_name: str) -> bool:
         """Check if a place name contains airport-related keywords."""
@@ -37,15 +40,15 @@ class PlaneTrajetService(BaseTransportService):
             try:
                 df = pd.read_csv(cache_file_path)
                 for _, row in df.iterrows():
-                    coord_key = f"{row['latitude']:.6f},{row['longitude']:.6f}"
+                    coord_key = f"{row['latitude']:.3f},{row['longitude']:.3f}"
                     self.airport_cache[coord_key] = {
                         "name": row['name'],
                         "latitude": row['latitude'],
                         "longitude": row['longitude']
                     }
-                print(f"Loaded {len(self.airport_cache)} airports from cache")
+                self.logger.info(f"Loaded {len(self.airport_cache)} airports from cache")
             except Exception as e:
-                print(f"Error loading airport cache: {e}")
+                self.logger.error(f"Error loading airport cache: {e}")
                 self.airport_cache = {}
 
     def _save_airport_cache(self) -> None:
@@ -67,11 +70,11 @@ class PlaneTrajetService(BaseTransportService):
             df = pd.DataFrame(cache_data)
             df.to_csv(cache_file_path, index=False)
         except Exception as e:
-            print(f"Error saving airport cache: {e}")
+            self.logger.error("Error saving airport cache: %s", e)
 
     def _get_cache_key(self, lat: float, lon: float) -> str:
         """Generate cache key for coordinates (rounded to 6 decimal places)."""
-        return f"{lat:.6f},{lon:.6f}"
+        return f"{lat:.3f},{lon:.3f}"
 
 
     def get_cache_stats(self) -> dict:
@@ -95,7 +98,6 @@ class PlaneTrajetService(BaseTransportService):
             "type": "airport",
             "key": self.api_key
         }
-
         data = self._make_google_maps_request("https://maps.googleapis.com/maps/api/place/nearbysearch/json", params)
         if data and data.get("status") == "OK" and data.get("results"):
             # Find the first valid airport
@@ -110,7 +112,6 @@ class PlaneTrajetService(BaseTransportService):
                     "latitude": valid_result["geometry"]["location"]["lat"],
                     "longitude": valid_result["geometry"]["location"]["lng"]
                 }
-                
                 # Add to cache and save
                 self.airport_cache[cache_key] = airport_data
                 self._save_airport_cache()
@@ -159,9 +160,8 @@ class PlaneTrajetService(BaseTransportService):
         flight_distance = self.calculate_distance(
             departure_airport["latitude"], departure_airport["longitude"],
             arrival_airport["latitude"], arrival_airport["longitude"]
-        )
+        ) * 2
         flight_time = self.calculate_flight_time(flight_distance)
-        
         # Calculate autocar distances and times
         stadium_to_airport_origin = self._format_coordinates(departure_coords[0], departure_coords[1])
         stadium_to_airport_dest = self._format_coordinates(departure_airport["latitude"], departure_airport["longitude"])
@@ -179,7 +179,7 @@ class PlaneTrajetService(BaseTransportService):
         time_autocar_dep = time_autocar_dep if time_autocar_dep else 0
         distance_autocar_arr = distance_autocar_arr if distance_autocar_arr else 0
         time_autocar_arr = time_autocar_arr if time_autocar_arr else 0
-        added_details = "" 
+        added_details = ""
         added_details += "No autocar departure route found" if not distance_autocar_dep else ""
         added_details += "No autocar arrival route found" if not distance_autocar_arr else ""
         
@@ -189,27 +189,27 @@ class PlaneTrajetService(BaseTransportService):
         
         # Calculate emissions
         fuel_consumption = self.calculate_fuel_consumption(flight_distance)
-        plane_emission = self.jet_fuel_to_co2 * fuel_consumption
+        plane_emission = self.jet_fuel_to_co2 * fuel_consumption * self.multiplication_factor_other_than_fuel
         autocar_emission = self.autocar_emission_factor * self.number_of_passengers * (distance_autocar_dep + distance_autocar_arr)
 
         # Total emissions (round trip)
-        total_emissions = (plane_emission + autocar_emission) * 2 # kg of CO2
+        total_emissions = (plane_emission + autocar_emission) # kg of CO2
         
         return RouteData(
             departure=departure,
             arrival=arrival,
-            travel_time=total_time,
-            distance=total_distance,
-            emissions=total_emissions,
+            travel_time_seconds=total_time,
+            distance_km=total_distance,
+            emissions_kg_co2=total_emissions,
             transport_type="plane",
             route_details={
-                "flight_distance": flight_distance,
-                "flight_time": flight_time,
-                "autocar_distance": distance_autocar_dep + distance_autocar_arr,
-                "autocar_time": time_autocar_dep + time_autocar_arr,
-                "fuel_consumption": fuel_consumption,
-                "plane_emission": plane_emission,
-                "autocar_emission": autocar_emission,
+                "flight_distance_km": flight_distance,
+                "flight_time_seconds": flight_time,
+                "autocar_distance_km": distance_autocar_dep + distance_autocar_arr,
+                "autocar_time_seconds": time_autocar_dep + time_autocar_arr,
+                "fuel_consumption_kg": fuel_consumption,
+                "plane_emission_kg_co2": plane_emission,
+                "autocar_emission_kg_co2": autocar_emission,
                 "added_details": added_details
             }
         )

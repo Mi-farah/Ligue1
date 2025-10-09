@@ -34,26 +34,28 @@ class CarTrajetService(BaseTransportService):
         destination_coords = self._format_coordinates(arrival_coords[0], arrival_coords[1])
         
         distance_km, duration_seconds = self._get_road_distance_duration(origin_coords, destination_coords)
-        
         if distance_km is not None and duration_seconds is not None:
+            distance_km = distance_km * 2
+            duration_seconds = duration_seconds * 2
             # Calculate emissions with round trip multiplier
-            emissions = self.autocar_emission_factor * distance_km * self.number_of_passengers * 2 # kg of CO2
+            emissions = self.autocar_emission_factor * distance_km * self.number_of_passengers # kg of CO2
             
             return RouteData(
                 departure=departure,
                 arrival=arrival,
-                travel_time=duration_seconds,
-                distance=distance_km,
-                emissions=emissions,
+                travel_time_seconds=duration_seconds,
+                distance_km=distance_km,
+                emissions_kg_co2=emissions,
                 transport_type="car"
             )
+        
         else:
             return RouteData(
                 departure=departure,
                 arrival=arrival,
-                travel_time=0,
-                distance=0,
-                emissions=0,
+                travel_time_seconds=0,
+                distance_km=0,
+                emissions_kg_co2=0,
                 transport_type="car",
                 route_details={"car_route_details": "No car route found"},
             )

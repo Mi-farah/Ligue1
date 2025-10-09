@@ -24,9 +24,9 @@ class RouteData:
     """
     departure: str
     arrival: str
-    travel_time: int  # in seconds
-    distance: float  # in kilometers
-    emissions: float  # in kg CO2
+    travel_time_seconds: int  # in seconds
+    distance_km: float  # in kilometers
+    emissions_kg_co2: float  # in kg CO2
     transport_type: str  # "train", "plane", "car"
     route_details: Optional[Dict[str, Any]] = None  # Additional route-specific data
 
@@ -77,11 +77,36 @@ class BaseTransportService(ABC):
             self.logger.debug("Making Google Maps API request to: %s", url)
             response = requests.get(url, params=params, timeout=30)
             response.raise_for_status()
-            self.logger.debug("Google Maps API request successful")
-            return response.json()
+            if response.status_code == 200:
+                self.logger.debug("Google Maps API request successful")
+                return response.json()
+            else:
+                self.logger.error("Google Maps API request failed: %s", response.status_code)
+                return None
         except requests.RequestException as e:
             self.logger.error("Google Maps API request failed: %s", e)
             return None
+    
+    def test_google_maps_request_connexion(self) -> Optional[Dict[str, Any]]:
+        """
+        Test the Google Maps API request.
+        """
+        try:
+            params = {
+                "address": "Paris",
+                "key": self.api_key
+            }
+            response = requests.get(GoogleMapsUrls.GEOCODING.value, params=params, timeout=30)
+            print(response.json())
+            if response.status_code == 200:
+                self.logger.info("Google Maps API request successful")
+                return True
+            else:
+                self.logger.error("Google Maps API request failed: %s, %s", response.status_code, response.text)
+                return False
+        except requests.RequestException as e:
+            self.logger.error("Google Maps API request failed: %s", e)
+            return False
     
     def _get_coordinates_for_place(self, place_name: str) -> Optional[Tuple[float, float]]:
         """
@@ -240,9 +265,9 @@ class BaseTransportService(ABC):
         data = {
             "departure": [route.departure for route in routes],
             "arrival": [route.arrival for route in routes],
-            "travel_time": [route.travel_time for route in routes],
-            "distance": [route.distance for route in routes],
-            "emissions": [route.emissions for route in routes],
+            "travel_time_seconds": [route.travel_time_seconds for route in routes],
+            "distance_km": [route.distance_km for route in routes],
+            "emissions_kg_co2": [route.emissions_kg_co2 for route in routes],
             "transport_type": [route.transport_type for route in routes]
         }
         
@@ -261,8 +286,8 @@ class BaseTransportService(ABC):
         
         table.add_row("Total Routes", str(len(routes)))
         table.add_row("Transport Type", routes[0].transport_type if routes else "N/A")
-        table.add_row("Total Distance (km)", f"{sum(route.distance for route in routes):.2f}")
-        table.add_row("Total Emissions (kg CO2)", f"{sum(route.emissions for route in routes):.2f}")
+        table.add_row("Total Distance (km)", f"{sum(route.distance_km for route in routes):.2f}")
+        table.add_row("Total Emissions (kg CO2)", f"{sum(route.emissions_kg_co2 for route in routes):.2f}")
         table.add_row("File Location", DATA_PATH + filename)
         
         self.console.print(table)
