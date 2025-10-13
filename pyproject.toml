@@ -1,0 +1,23 @@
+[project]
+name = "ligue1-emissions"
+version = "0.1.0"
+description = "Calculate CO2 emissions for Ligue 1 team travel using train, plane, and car routes"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "pandas>=1.5.0",
+    "requests>=2.28.0",
+    "python-dotenv>=0.19.0",
+    "rich>=12.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+include = ["*"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
