@@ -47,3 +47,10 @@ TRAIN_EMISSION_FACTOR = 0.0091375  # kgCO2/passenger/km (https://bigmedia.bpifra
 # RER = 4,75 gCO2/km ;
 # TER = 24,8 gCO2/km ;
 # TGV = 1,7 gCO2/km.
+
+"""
+- utiliser les trajets de Lou
+- faire les trajets à vide de bus (fixé)
+- faire les trajets en avion depuis la liste des aéroports
+- faire les trajets en train en gare fixé
+"""
