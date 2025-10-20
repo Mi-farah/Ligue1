@@ -17,14 +17,10 @@ def main():
     plane_service = PlaneTrajetService(api_key)
     car_service = CarTrajetService(api_key)
 
-    # if train_service.test_google_maps_request_connexion():
+    # Run the complete analysis for each transport mode
     train_service.run_complete_analysis()
-
-    # # if plane_service.test_google_maps_request_connexion():
-    # plane_service.run_complete_analysis()
-
-    # # if car_service.test_google_maps_request_connexion():
-    # car_service.run_complete_analysis()
+    plane_service.run_complete_analysis()
+    car_service.run_complete_analysis()
 
 
 if __name__ == "__main__":
