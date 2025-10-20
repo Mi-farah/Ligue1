@@ -1,4 +1,4 @@
-# Ligue1
+# Ligue1 SALUT
 
 There are three folder:
 - One that would calculate the emissions emitted by planes (let's name it plane folder)
