@@ -4,15 +4,12 @@ import requests
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
-from backend.global_variables import DATA_PATH, LOCALISATION_STADE_FILENAME, NAME_STADE_FILENAME, GoogleMapsUrls
+from backend.global_variables import DATA_PATH, LOCALISATION_STADE_FILENAME, NAME_STADE_FILENAME, ROAD_DISTANCE_CACHE_FILENAME, GoogleMapsUrls
 from math import radians, sin, cos, sqrt, asin
 from rich.console import Console
 from rich.logging import RichHandler
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
 from rich.table import Table
-from rich.panel import Panel
 import logging
-
 
 @dataclass
 class RouteData:
@@ -53,39 +50,152 @@ class BaseTransportService(ABC):
         self.api_key = api_key
         self.console = Console()
         
+        
         # Setup rich logging
         logging.basicConfig(
-            level=logging.INFO,
+            level=logging.DEBUG,
             format="%(message)s",
             datefmt="[%X]",
             handlers=[RichHandler(console=self.console, rich_tracebacks=True)]
         )
         self.logger = logging.getLogger(self.__class__.__name__)
         
-    def _make_google_maps_request(self, url: str, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        # Initialize road distance cache
+        self.road_distance_cache = {}
+        self._load_road_distance_cache()
+
+    def _make_google_maps_request(
+        self,
+        url: str,
+        params: Optional[Dict[str, Any]] = None,
+        json_data: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        method: str = "GET"
+    ) -> Optional[Dict[str, Any]]:
         """
         Make a request to Google Maps API with error handling.
-        
+
         Args:
             url: API endpoint URL
-            params: Request parameters
-            
+            params: Request parameters for GET requests
+            json_data: JSON body for POST requests
+            headers: Optional HTTP headers
+            method: HTTP method ("GET" or "POST")
+
         Returns:
             API response data or None if request fails
         """
         try:
             self.logger.debug("Making Google Maps API request to: %s", url)
-            response = requests.get(url, params=params, timeout=30)
-            response.raise_for_status()
-            if response.status_code == 200:
-                self.logger.debug("Google Maps API request successful")
-                return response.json()
+
+            if method.upper() == "POST":
+                response = requests.post(url, json=json_data, headers=headers, timeout=30)
             else:
-                self.logger.error("Google Maps API request failed: %s", response.status_code)
-                return None
+                response = requests.get(url, params=params, headers=headers, timeout=30)
+
+            response.raise_for_status()
+            data = response.json()
+
+            self.logger.debug("Google Maps API request successful")
+            return data
+
         except requests.RequestException as e:
             self.logger.error("Google Maps API request failed: %s", e)
+            print(response.text)
             return None
+
+    
+    def _load_road_distance_cache(self) -> None:
+        """
+        Load road distance cache from CSV file.
+        
+        The cache stores road distances and durations between coordinate pairs
+        to avoid redundant API calls.
+        """
+        cache_file = DATA_PATH + ROAD_DISTANCE_CACHE_FILENAME
+        if os.path.exists(cache_file):
+            try:
+                df = pd.read_csv(cache_file)
+                for _, row in df.iterrows():
+                    cache_key = f"{row['origin']}|{row['destination']}"
+                    self.road_distance_cache[cache_key] = {
+                        'distance_km': row['distance_km'],
+                        'duration_seconds': row['duration_seconds']
+                    }
+                self.logger.info("Loaded %d cached road distances", len(self.road_distance_cache))
+            except (FileNotFoundError, pd.errors.EmptyDataError, KeyError, ValueError) as e:
+                self.logger.warning("Failed to load road distance cache: %s", e)
+                self.road_distance_cache = {}
+        else:
+            self.logger.info("No road distance cache found, starting fresh")
+            self.road_distance_cache = {}
+    
+    def _save_road_distance_cache(self) -> None:
+        """
+        Save road distance cache to CSV file.
+        
+        Saves the current cache to disk for future use.
+        """
+        if not self.road_distance_cache:
+            return
+            
+        cache_file = DATA_PATH + ROAD_DISTANCE_CACHE_FILENAME
+        try:
+            data = []
+            for cache_key, values in self.road_distance_cache.items():
+                origin, destination = cache_key.split('|')
+                data.append({
+                    'origin': origin,
+                    'destination': destination,
+                    'distance_km': values['distance_km'],
+                    'duration_seconds': values['duration_seconds']
+                })
+            
+            df = pd.DataFrame(data)
+            df.to_csv(cache_file, index=False)
+            self.logger.info("Saved %d road distances to cache", len(self.road_distance_cache))
+        except (OSError, pd.errors.EmptyDataError, ValueError) as e:
+            self.logger.error("Failed to save road distance cache: %s", e)
+    
+    def _get_cached_road_distance(self, origin: str, destination: str) -> Optional[Tuple[float, int]]:
+        """
+        Get cached road distance and duration.
+        
+        Args:
+            origin: Origin coordinates as "lat,lng"
+            destination: Destination coordinates as "lat,lng"
+            
+        Returns:
+            Tuple of (distance_km, duration_seconds) or None if not cached
+        """
+        # Try both directions since road distance is symmetric
+        cache_key1 = f"{origin}|{destination}"
+        cache_key2 = f"{destination}|{origin}"
+        
+        if cache_key1 in self.road_distance_cache:
+            values = self.road_distance_cache[cache_key1]
+            return values['distance_km'], values['duration_seconds']
+        elif cache_key2 in self.road_distance_cache:
+            values = self.road_distance_cache[cache_key2]
+            return values['distance_km'], values['duration_seconds']
+        
+        return None
+    
+    def _cache_road_distance(self, origin: str, destination: str, distance_km: float, duration_seconds: int) -> None:
+        """
+        Cache road distance and duration.
+        
+        Args:
+            origin: Origin coordinates as "lat,lng"
+            destination: Destination coordinates as "lat,lng"
+            distance_km: Distance in kilometers
+            duration_seconds: Duration in seconds
+        """
+        cache_key = f"{origin}|{destination}"
+        self.road_distance_cache[cache_key] = {
+            'distance_km': distance_km,
+            'duration_seconds': duration_seconds
+        }
     
     def test_google_maps_request_connexion(self) -> Optional[Dict[str, Any]]:
         """
@@ -97,70 +207,116 @@ class BaseTransportService(ABC):
                 "key": self.api_key
             }
             response = requests.get(GoogleMapsUrls.GEOCODING.value, params=params, timeout=30)
-            print(response.json())
-            if response.status_code == 200:
-                self.logger.info("Google Maps API request successful")
-                return True
-            else:
-                self.logger.error("Google Maps API request failed: %s, %s", response.status_code, response.text)
+            response_dict = response.json()
+            if response_dict.get("error_message") or response.status_code != 200:
+                self.logger.error("Google Maps API request failed: %s", response_dict.get("error_message") or response.status_code)
                 return False
-        except requests.RequestException as e:
+            else:
+                return True
+        except (requests.RequestException, KeyError, ValueError) as e:
             self.logger.error("Google Maps API request failed: %s", e)
             return False
     
     def _get_coordinates_for_place(self, place_name: str) -> Optional[Tuple[float, float]]:
         """
         Get coordinates for a place using Google Maps Geocoding API.
-        
+
         Args:
             place_name: Name of the place to geocode
-            
+
         Returns:
             Tuple of (latitude, longitude) or None if not found
         """
-        self.logger.info("🔍 Geocoding place: %s", place_name)
+        self.logger.info("Geocoding place: %s", place_name)
+
         params = {
             "address": place_name,
             "key": self.api_key
         }
-        
-        data = self._make_google_maps_request(GoogleMapsUrls.GEOCODING.value, params)
-        if data and data.get('status') == 'OK':
-            location = data['results'][0]['geometry']['location']
-            coords = (location['lat'], location['lng'])
-            self.logger.info("✅ Found coordinates for %s: %.4f, %.4f", place_name, coords[0], coords[1])
+
+        data = self._make_google_maps_request(
+            url=GoogleMapsUrls.GEOCODING.value,
+            params=params,
+            method="GET"
+        )
+
+        if not data:
+            self.logger.warning("No response from Geocoding API for %s", place_name)
+            return None
+
+        if data.get("status") == "OK" and data.get("results"):
+            location = data["results"][0]["geometry"]["location"]
+            coords = (location["lat"], location["lng"])
+            self.logger.info(
+                "Found coordinates for %s: %.4f, %.4f", place_name, coords[0], coords[1]
+            )
             return coords
         else:
-            self.logger.warning("❌ Could not find coordinates for %s", place_name)
+            self.logger.warning("Could not find coordinates for %s. Status: %s", place_name, data.get("status"))
             return None
-    
+
     def _get_road_distance_duration(self, origin: str, destination: str) -> Tuple[Optional[float], Optional[int]]:
         """
-        Get road distance and duration between two coordinates.
-        
+        Get road distance and duration between two coordinates using the new Google Routes API.
+        Uses cache to avoid redundant API calls.
+
         Args:
             origin: Origin coordinates as "lat,lng"
             destination: Destination coordinates as "lat,lng"
-            
+
         Returns:
             Tuple of (distance_km, duration_seconds) or (None, None) if request fails
         """
-        params = {
-            "origin": origin,
-            "destination": destination,
-            "mode": "driving",
-            "alternatives": "false",
-            "key": self.api_key
-        }
-        
-        data = self._make_google_maps_request(GoogleMapsUrls.DIRECTION.value, params)
-        if data and data.get("status") == "OK" and data.get("routes"):
-            leg = data["routes"][0]["legs"][0]
-            distance_meters = leg["distance"]["value"]
-            duration_seconds = leg["duration"]["value"]
-            return distance_meters / 1000, duration_seconds  # Convert to km
-        return None, None
-    
+        # Check cache first
+        cached_result = self._get_cached_road_distance(origin, destination)
+        if cached_result is not None:
+            self.logger.debug("Using cached road distance: %s -> %s", origin, destination)
+            return cached_result
+        self.logger.debug("Making API request for road distance: %s -> %s", origin, destination)
+
+        try:
+            origin_lat, origin_lng = map(float, origin.split(","))
+            dest_lat, dest_lng = map(float, destination.split(","))
+
+            url = GoogleMapsUrls.DIRECTION.value
+            headers = {
+                "Content-Type": "application/json",
+                "X-Goog-Api-Key": self.api_key,
+                "X-Goog-FieldMask": "routes.distanceMeters,routes.duration"
+            }
+
+            body = {
+                "origin": {"location": {"latLng": {"latitude": origin_lat, "longitude": origin_lng}}},
+                "destination": {"location": {"latLng": {"latitude": dest_lat, "longitude": dest_lng}}},
+                "travelMode": "DRIVE"
+            }
+
+            data = self._make_google_maps_request(
+                url=url,
+                json_data=body,
+                headers=headers,
+                method="POST"
+            )
+
+            if not data or "routes" not in data or len(data["routes"]) == 0:
+                self.logger.warning("No routes found between %s and %s", origin, destination)
+                return None, None
+
+            route = data["routes"][0]
+            distance_meters = route["distanceMeters"]
+            duration_seconds = int(float(route["duration"].replace("s", "")))  # "3600s" → 3600
+            distance_km = distance_meters / 1000
+
+            # Cache result
+            self._cache_road_distance(origin, destination, distance_km, duration_seconds)
+            self._save_road_distance_cache()
+
+            return distance_km, duration_seconds
+
+        except Exception as e:
+            self.logger.error("Failed to fetch route distance: %s", e)
+            return None, None
+
     def calculate_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         """Calculate the great circle distance between two points in kilometers."""
         R = 6371.0  # Earth's radius in kilometers
@@ -186,6 +342,7 @@ class BaseTransportService(ABC):
             FileNotFoundError: If stadium data file is not found
         """
         if not os.path.exists(DATA_PATH + LOCALISATION_STADE_FILENAME):
+            self.logger.info("⚠️ Stadium data file not found, starting geocoding...")
             self.get_coordinates_stadiums()
         try:
             return pd.read_csv(DATA_PATH + LOCALISATION_STADE_FILENAME, index_col=0)
@@ -204,40 +361,29 @@ class BaseTransportService(ABC):
         Raises:
             Exception: If API request fails or stadium not found
         """
-        self.logger.info("🏟️ Starting stadium coordinates retrieval...")
+        self.logger.info("Starting stadium coordinates retrieval...")
         stadium_data = pd.read_csv(DATA_PATH + NAME_STADE_FILENAME)
 
         latitude_list = []
         longitude_list = []
         total_stadiums = len(stadium_data["Stadium"])
 
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-            TimeElapsedColumn(),
-            console=self.console
-        ) as progress:
-            task = progress.add_task("Geocoding stadiums...", total=total_stadiums)
+        self.logger.info("Geocoding stadiums...")
+        for stadium_name in stadium_data["Stadium"]:
+            coordinates = self._get_coordinates_for_place(stadium_name)
+            if coordinates:
+                latitude_list.append(coordinates[0])
+                longitude_list.append(coordinates[1])
+            else:
+                latitude_list.append(None)
+                longitude_list.append(None)
             
-            for stadium_name in stadium_data["Stadium"]:
-                coordinates = self._get_coordinates_for_place(stadium_name)
-                if coordinates:
-                    latitude_list.append(coordinates[0])
-                    longitude_list.append(coordinates[1])
-                else:
-                    latitude_list.append(None)
-                    longitude_list.append(None)
-                
-                progress.advance(task)
-
         stadium_data["latitude"] = latitude_list
         stadium_data["longitude"] = longitude_list
         stadium_data.to_csv(DATA_PATH + LOCALISATION_STADE_FILENAME)
         
         successful_geocodes = sum(1 for lat in latitude_list if lat is not None)
-        self.logger.info("✅ Stadium coordinates saved! %d/%d stadiums geocoded successfully", successful_geocodes, total_stadiums)
+        self.logger.info("Stadium coordinates saved! %d/%d stadiums geocoded successfully", successful_geocodes, total_stadiums)
 
     def _format_coordinates(self, lat: float, lon: float) -> str:
         """Format latitude and longitude into coordinate string."""
@@ -260,7 +406,7 @@ class BaseTransportService(ABC):
             routes: List of RouteData objects
             filename: Output filename
         """
-        self.logger.info("💾 Saving %d routes to %s...", len(routes), filename)
+        self.logger.info("Saving %d routes to %s...", len(routes), filename)
         
         data = {
             "departure": [route.departure for route in routes],
@@ -291,7 +437,7 @@ class BaseTransportService(ABC):
         table.add_row("File Location", DATA_PATH + filename)
         
         self.console.print(table)
-        self.logger.info("✅ Route data successfully saved to %s", filename)
+        self.logger.info("Route data successfully saved to %s", filename)
     
     @abstractmethod
     def calculate_route(self, departure: str, arrival: str, departure_coords: Tuple[float, float], 
@@ -318,7 +464,7 @@ class BaseTransportService(ABC):
         Returns:
             List of RouteData objects for all stadium pairs
         """
-        self.logger.info("🚀 Starting route processing...")
+        self.logger.info("Starting route processing...")
         stadium_df = self._load_stadium_data()
         routes = []
         
@@ -326,35 +472,22 @@ class BaseTransportService(ABC):
         total_teams = len(stadium_df)
         total_routes = total_teams * (total_teams - 1) // 2
         
-        self.logger.info("📊 Processing %d unique routes between %d teams", total_routes, total_teams)
+        self.logger.info("Processing %d unique routes between %d teams", total_routes, total_teams)
         
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-            TextColumn("({task.completed}/{task.total})"),
-            TimeElapsedColumn(),
-            console=self.console
-        ) as progress:
-            task = progress.add_task("Calculating routes...", total=total_routes)
+        for i, stadium_row in stadium_df.iterrows():
+            departure = stadium_row["Team"]  # Team name
+            departure_coords = (stadium_row["latitude"], stadium_row["longitude"])  # lat, lng
             
-            for i, stadium_row in stadium_df.iterrows():
-                departure = stadium_row["Team"]  # Team name
-                departure_coords = (stadium_row["latitude"], stadium_row["longitude"])  # lat, lng
+            # Only iterate through teams that come after the current team to avoid duplicates
+            for _, stadium_row2 in stadium_df.iloc[i+1:].iterrows():
+                arrival = stadium_row2["Team"]  # Team name
+                arrival_coords = (stadium_row2["latitude"], stadium_row2["longitude"])  # lat, lng
                 
-                # Only iterate through teams that come after the current team to avoid duplicates
-                for _, stadium_row2 in stadium_df.iloc[i+1:].iterrows():
-                    arrival = stadium_row2["Team"]  # Team name
-                    arrival_coords = (stadium_row2["latitude"], stadium_row2["longitude"])  # lat, lng
-                    
-                    route = self.calculate_route(departure, arrival, departure_coords, arrival_coords)
-                    if route:
-                        routes.append(route)
-                    
-                    progress.advance(task)
-        
-        self.logger.info("✅ Route processing complete! %d routes calculated successfully", len(routes))
+                route = self.calculate_route(departure, arrival, departure_coords, arrival_coords)
+                if route:
+                    routes.append(route)
+                        
+        self.logger.info("Route processing complete! %d routes calculated successfully", len(routes))
         return routes
 
 
@@ -368,18 +501,6 @@ class BaseTransportService(ABC):
         Returns:
             List of RouteData objects
         """
-        transport_type = self.__class__.__name__.replace("Service", "").lower()
-        
-        # Create a nice header panel
-        header_panel = Panel(
-            f"[bold blue]{self.__class__.__name__}[/bold blue]\n"
-            f"[green]Transport Type:[/green] {transport_type.title()}\n"
-            f"[green]Output File:[/green] {output_filename}",
-            title="🚀 Transport Analysis Started",
-            border_style="blue"
-        )
-        self.console.print(header_panel)
-        
         self.logger.info("Starting complete %s analysis...", self.__class__.__name__)
         
         routes = self.process_all_routes()
@@ -388,13 +509,9 @@ class BaseTransportService(ABC):
             self._save_route_data(routes, output_filename)
             
         else:
-            error_panel = Panel(
-                "[bold red]❌ No routes were processed![/bold red]\n"
-                "Please check your configuration and try again.",
-                title="⚠️ Analysis Failed",
-                border_style="red"
-            )
-            self.console.print(error_panel)
             self.logger.warning("No routes were processed.")
+        
+        # Save road distance cache for future use
+        self._save_road_distance_cache()
         
         return routes

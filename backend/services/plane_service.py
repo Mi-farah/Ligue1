@@ -1,7 +1,6 @@
 import pandas as pd
-import os
 from typing import Tuple, Optional, Dict
-from backend.global_variables import FLIGHT_EMISSIONS_FILENAME, DATA_PATH, AIRPORT_CACHE_FILENAME, AUTO_CAR_EMISSION_FACTOR, NUMBER_OF_PASSENGERS
+from backend.global_variables import FLIGHT_EMISSIONS_FILENAME, DATA_PATH, AIRPORT_CACHE_FILENAME, AUTO_CAR_EMISSION_FACTOR, NUMBER_OF_PASSENGERS, GoogleMapsUrls
 from backend.services.base_transport_service import BaseTransportService, RouteData
 
 class PlaneTrajetService(BaseTransportService):
@@ -36,91 +35,78 @@ class PlaneTrajetService(BaseTransportService):
     def _load_airport_cache(self) -> None:
         """Load airport cache from CSV file if it exists."""
         cache_file_path = DATA_PATH + AIRPORT_CACHE_FILENAME
-        if os.path.exists(cache_file_path):
-            try:
-                df = pd.read_csv(cache_file_path)
-                for _, row in df.iterrows():
-                    coord_key = f"{row['latitude']:.3f},{row['longitude']:.3f}"
-                    self.airport_cache[coord_key] = {
-                        "name": row['name'],
-                        "latitude": row['latitude'],
-                        "longitude": row['longitude']
-                    }
-                self.logger.info(f"Loaded {len(self.airport_cache)} airports from cache")
-            except Exception as e:
-                self.logger.error(f"Error loading airport cache: {e}")
-                self.airport_cache = {}
+        df = pd.read_csv(cache_file_path)
+        for _, row in df.iterrows():
+            self.airport_cache[row["club_name"]] = {
+                "airport_name": row['airport_name'],
+                "latitude": row['latitude'],
+                "longitude": row['longitude'],
+                "club_name": row['club_name'],
+                "stadium_name": row['stadium_name'],
+            }
+        self.logger.info("Loaded %s airports from cache", len(self.airport_cache))
 
     def _save_airport_cache(self) -> None:
         """Save airport cache to CSV file."""
-        if not self.airport_cache:
-            return
-            
         cache_file_path = DATA_PATH + AIRPORT_CACHE_FILENAME
-        try:
-            # Create DataFrame from cache
-            cache_data = []
-            for _, airport_data in self.airport_cache.items():
-                cache_data.append({
-                    'latitude': airport_data['latitude'],
-                    'longitude': airport_data['longitude'],
-                    'name': airport_data['name']
-                })
-            
-            df = pd.DataFrame(cache_data)
-            df.to_csv(cache_file_path, index=False)
-        except Exception as e:
-            self.logger.error("Error saving airport cache: %s", e)
+        df = pd.DataFrame(self.airport_cache.values())
+        df.to_csv(cache_file_path, index=False)
+        self.logger.info("Saved %s airports to cache", len(self.airport_cache))
 
-    def _get_cache_key(self, lat: float, lon: float) -> str:
-        """Generate cache key for coordinates (rounded to 6 decimal places)."""
-        return f"{lat:.3f},{lon:.3f}"
-
-
-    def get_cache_stats(self) -> dict:
-        """Get statistics about the airport cache."""
-        return {
-            "cached_airports": len(self.airport_cache),
-            "cache_file_exists": os.path.exists(DATA_PATH + AIRPORT_CACHE_FILENAME)
-        }
-
-    def get_nearest_airport(self, lat: float, lon: float) -> dict:
+    def get_nearest_airport(self, club_name: str, lat: float, lon: float) -> dict:
         """Find the nearest airport to given coordinates, using cache when possible."""
         # Check cache first
-        cache_key = self._get_cache_key(lat, lon)
-        if cache_key in self.airport_cache:
-            return self.airport_cache[cache_key]
+        if club_name in self.airport_cache:
+            return self.airport_cache[club_name]
         
+        self.logger.warning("⚠️ No airport found in cache for '%s'", club_name)
         # If not in cache, make API request
-        params = {
-            "location": f"{lat},{lon}",
-            "radius": 50000,
-            "type": "airport",
-            "key": self.api_key
+
+        headers = {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": self.api_key,
+            "X-Goog-FieldMask": "places.displayName,places.location,places.id"
         }
-        data = self._make_google_maps_request("https://maps.googleapis.com/maps/api/place/nearbysearch/json", params)
-        if data and data.get("status") == "OK" and data.get("results"):
+
+        body = {
+            "includedTypes": ["airport"],
+            "maxResultCount": 10,
+            "locationRestriction": {
+                "circle": {
+                    "center": {"latitude": lat, "longitude": lon},
+                    "radius": 50000.0
+                }
+            }
+        }
+
+        data = self._make_google_maps_request(
+            url=GoogleMapsUrls.NEARBY_PLACE.value,
+            json_data=body,
+            headers=headers,
+            method="POST"
+        )
+        if data and data.get("places"):
             # Find the first valid airport
             valid_result = next(
-                (place for place in data["results"] if self.is_real_airport(place["name"])),
+                (place for place in data["places"] if self.is_real_airport(place.get("displayName", {}).get("text", ""))),
                 None
             )
 
             if valid_result:
+                location = valid_result.get("location", {})
                 airport_data = {
-                    "name": valid_result["name"],
-                    "latitude": valid_result["geometry"]["location"]["lat"],
-                    "longitude": valid_result["geometry"]["location"]["lng"]
+                    "airport_name": valid_result.get("displayName", {}).get("text"),
+                    "latitude": location.get("latitude"),
+                    "longitude": location.get("longitude"),
+                    "club_name": club_name,
                 }
-                # Add to cache and save
-                self.airport_cache[cache_key] = airport_data
+                self.airport_cache[club_name] = airport_data
                 self._save_airport_cache()
-                
                 return airport_data
             else:
                 return {"error": "No real airport found in results"}
         else:
-            return {"error": data.get("status", "No results") if data else "Request failed"}
+            return {"error": "No places found" if data else "Request failed"}
 
 
     def calculate_fuel_consumption(self, distance: float) -> float:
@@ -150,8 +136,8 @@ class PlaneTrajetService(BaseTransportService):
             RouteData object or None if calculation fails
         """
         # Get nearest airports for both stadiums
-        departure_airport = self.get_nearest_airport(departure_coords[0], departure_coords[1])
-        arrival_airport = self.get_nearest_airport(arrival_coords[0], arrival_coords[1])
+        departure_airport = self.get_nearest_airport(club_name=departure, lat=departure_coords[0], lon=departure_coords[1])
+        arrival_airport = self.get_nearest_airport(club_name=arrival, lat=arrival_coords[0], lon=arrival_coords[1])
         
         if "error" in departure_airport or "error" in arrival_airport:
             return None
