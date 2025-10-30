@@ -1,74 +1,67 @@
-from typing import List, Tuple, Optional, Dict, Any
+"""
+Simplified service class for handling train journey calculations.
+
+This service provides functionality to:
+- Calculate train routes between stadiums using Google Maps transit API
+- Compare train vs car emissions for optimal route selection
+- Generate comprehensive carbon footprint analysis
+"""
+
+import os
+from datetime import datetime, timedelta
+from typing import Any, List, Optional, Tuple
+
+import pandas as pd
 import requests
 from requests.auth import HTTPBasicAuth
-from backend.global_variables import TRAIN_EMISSIONS_FILENAME, NUMBER_OF_PASSENGERS
+from tqdm import tqdm
+
+from backend.global_variables import (
+    DATA_PATH,
+    NUMBER_OF_PASSENGERS,
+    TRAIN_EMISSIONS_FILENAME,
+)
 from backend.services.base_transport_service import BaseTransportService, RouteData
-from datetime import timedelta, datetime
+from backend.services.car_service import CarTrajetService
+
 
 class TrainTrajetService(BaseTransportService):
     """
     Simplified service class for handling train journey calculations.
-    
+
     This service provides functionality to:
     - Calculate train routes between stadiums using Google Maps transit API
     - Compare train vs car emissions for optimal route selection
     - Generate comprehensive carbon footprint analysis
     """
-    
+
     def __init__(self, api_key: str, sncf_api_key: str) -> None:
         """
         Initialize the TrainTrajetService with Google Maps API key.
-        
+
         Args:
             api_key (str): Google Maps API key for geocoding and directions
         """
         super().__init__(api_key)
         self.sncf_api_key = sncf_api_key
         self.closest_station_cache = {}
+        self._load_gare_positions_df()
+        self.car_service = CarTrajetService(api_key)
 
         # Carbon emission constants (gCO2/passenger/km)
-        self.number_of_passengers = NUMBER_OF_PASSENGERS  # Number of passengers (team + staff)
+        self.number_of_passengers = (
+            NUMBER_OF_PASSENGERS  # Number of passengers (team + staff)
+        )
 
+    def _load_gare_positions_df(self) -> None:
+        if not os.path.exists(DATA_PATH + "gare_positions.csv"):
+            self.logger.info("Gare positions file not found, starting geocoding...")
+        self.gare_positions_df = pd.read_csv(DATA_PATH + "gare_positions.csv")
+        self.logger.info(
+            "Loaded %s gare positions from cache", len(self.gare_positions_df)
+        )
 
-    def _get_closest_station(self, city_query: str, lat: float, lon: float) -> Tuple[Optional[str], Optional[str]]:
-            """
-            Returns the closest SNCF train station stop_area id given a latitude and longitude.
-            """
-            # check if station is already in cache
-            if city_query in self.closest_station_cache:
-                return self.closest_station_cache[city_query]
-            
-            # if not, get closest station
-            url = "https://api.sncf.com/v1/coverage/sncf/places"
-            params = {"q": city_query}
-            response = requests.get(url, params=params, auth=HTTPBasicAuth(self.sncf_api_key, ""), timeout=30)
-            data = response.json()
-            places = data.get("places", [])
-            if not places:
-                print(f"WARNING: No station found for {city_query}")
-                return None, None
-            closest_place = None
-            min_distance = float('inf')
-            for place in places:
-                if "stop_area" in place["id"]:
-                    place_lat = float(place["stop_area"]["coord"]["lat"])
-                    place_lon = float(place["stop_area"]["coord"]["lon"])
-                    distance = self.calculate_distance(lat, lon, place_lat, place_lon)
-                    print(f"distance: {distance} from {city_query} to {place['stop_area']['name']}")
-                    if distance < min_distance:
-                        min_distance = distance
-                        closest_place = place
-            if closest_place:
-                stop_area_id = closest_place["stop_area"]["id"]
-                stop_area_name = closest_place["stop_area"]["name"]
-                self.closest_station_cache[city_query] = (stop_area_id, stop_area_name)
-            else:
-                print(f"WARNING: No station found for {city_query}")
-                return None, None
-            self.closest_station_cache[city_query] = (stop_area_id, stop_area_name)
-            return stop_area_id, stop_area_name
-    
-    def _compute_section_distance(self, sec:dict[str, Any]):
+    def _compute_section_distance(self, sec: dict[str, Any]):
         """Compute distance of a section from geojson coordinates (km)."""
         coords = sec.get("geojson", {}).get("coordinates", [])
         if len(coords) < 2:
@@ -106,17 +99,26 @@ class TrainTrajetService(BaseTransportService):
 
             # Save section detail
             if sec_dist > 0:
-                details.append({
-                    "from": from_name,
-                    "to": to_name,
-                    "type": sec.get("type", "unknown"),
-                    "distance_km": sec_dist,
-                    "co2_kg": sec_co2,
-                    "time_s": sec_time
-                })
-        return {"carbon_emission_kgCO2": total_co2, "distance_km": total_dist, "duration_s": total_time, "details": details}
-    
-    def _get_week_journeys(self, from_id: str, to_id: str, start_date: datetime) -> list[dict[str, Any]]:
+                details.append(
+                    {
+                        "from": from_name,
+                        "to": to_name,
+                        "type": sec.get("type", "unknown"),
+                        "distance_km": sec_dist,
+                        "co2_kg": sec_co2,
+                        "time_s": sec_time,
+                    }
+                )
+        return {
+            "carbon_emission_kgCO2": total_co2,
+            "distance_km": total_dist,
+            "duration_s": total_time,
+            "details": details,
+        }
+
+    def _get_week_journeys(
+        self, from_id: str, to_id: str, start_date: datetime
+    ) -> list[dict[str, Any]]:
         url = "https://api.sncf.com/v1/coverage/sncf/journeys"
         week_trains = []
         dt = start_date
@@ -125,9 +127,14 @@ class TrainTrajetService(BaseTransportService):
             params = {
                 "from": from_id,
                 "to": to_id,
-                "datetime": dt.strftime("%Y%m%dT%H%M%S")
+                "datetime": dt.strftime("%Y%m%dT%H%M%S"),
             }
-            r = requests.get(url, params=params, auth=HTTPBasicAuth(self.sncf_api_key, ""), timeout=30)
+            r = requests.get(
+                url,
+                params=params,
+                auth=HTTPBasicAuth(self.sncf_api_key, ""),
+                timeout=30,
+            )
             data = r.json()
             journeys = data.get("journeys", [])
             for j in journeys:
@@ -136,43 +143,157 @@ class TrainTrajetService(BaseTransportService):
             dt += timedelta(days=1)
         return week_trains
 
-    
-    def calculate_route(self, departure: str, arrival: str, departure_coords: Tuple[float, float], 
-                       arrival_coords: Tuple[float, float]) -> Optional[RouteData]:
+    def _calculate_car_part(
+        self,
+        departure: str,
+        arrival: str,
+        departure_stop_area_id: str,
+        arrival_stop_area_id: str,
+    ) -> RouteData:
+        """
+        Calculate the total distance and duration (round trip) by car for:
+        - Stadium to departure station
+        - Arrival station to stadium
+
+        departure : city name
+        arrival : city name
+        departure_stop_area_id : stop area id
+        arrival_stop_area_id : stop area id
+
+        Returns:
+            RouteData object (empty if calculation fails)
+        """
+        gare_departure_row = self.gare_positions_df.loc[
+            self.gare_positions_df["stop_area_id"] == departure_stop_area_id
+        ].to_dict(orient="records")[0]
+        gare_arrival_row = self.gare_positions_df.loc[
+            self.gare_positions_df["stop_area_id"] == arrival_stop_area_id
+        ].to_dict(orient="records")[0]
+
+        departure_stadium_latitude, departure_stadium_longitude = self.stadium_df.loc[
+            self.stadium_df["Stadium"] == gare_departure_row["stadium_name"],
+            ["latitude", "longitude"],
+        ].iloc[0]
+        arrival_stadium_latitude, arrival_stadium_longitude = self.stadium_df.loc[
+            self.stadium_df["Stadium"] == gare_arrival_row["stadium_name"],
+            ["latitude", "longitude"],
+        ].iloc[0]
+
+        departure_stadium_coords = (
+            departure_stadium_latitude,
+            departure_stadium_longitude,
+        )
+        arrival_stadium_coords = (arrival_stadium_latitude, arrival_stadium_longitude)
+
+        # Use CarTrajetService to calculate RouteData for each car segment, sum for round trip
+        car_leg_1 = self.car_service.calculate_route(
+            departure=gare_departure_row["stadium_name"],
+            arrival=gare_departure_row["gare_name"],
+            departure_coords=departure_stadium_coords,
+            arrival_coords=(
+                gare_departure_row["latitude"],
+                gare_departure_row["longitude"],
+            ),
+        )
+        car_leg_2 = self.car_service.calculate_route(
+            departure=gare_arrival_row["stadium_name"],
+            arrival=gare_arrival_row["gare_name"],
+            departure_coords=arrival_stadium_coords,
+            arrival_coords=(
+                gare_arrival_row["latitude"],
+                gare_arrival_row["longitude"],
+            ),
+        )
+
+        # Calculate totals for round trip (2x both legs)
+        if car_leg_1 and car_leg_2:
+            total_distance = car_leg_1.distance_km + car_leg_2.distance_km
+            total_duration = (
+                car_leg_1.travel_time_seconds + car_leg_2.travel_time_seconds
+            )
+            total_emissions = car_leg_1.emissions_kg_co2 + car_leg_2.emissions_kg_co2
+            all_details = {
+                "segments": [
+                    {
+                        "from": gare_departure_row["stadium_name"],
+                        "to": gare_departure_row["gare_name"],
+                        "distance_km": car_leg_1.distance_km,
+                        "travel_time_seconds": car_leg_1.travel_time_seconds,
+                        "emissions_kg_co2": car_leg_1.emissions_kg_co2,
+                    },
+                    {
+                        "from": gare_arrival_row["gare_name"],
+                        "to": gare_arrival_row["stadium_name"],
+                        "distance_km": car_leg_2.distance_km,
+                        "travel_time_seconds": car_leg_2.travel_time_seconds,
+                        "emissions_kg_co2": car_leg_2.emissions_kg_co2,
+                    },
+                ]
+            }
+            return RouteData(
+                departure=departure,
+                arrival=arrival,
+                travel_time_seconds=total_duration,
+                distance_km=total_distance,
+                emissions_kg_co2=total_emissions,
+                transport_type="car",
+                route_details=all_details,
+            )
+        else:
+            return RouteData(
+                departure=departure,
+                arrival=arrival,
+                travel_time_seconds=0,
+                distance_km=0,
+                emissions_kg_co2=0,
+                transport_type="car",
+                route_details={"car_route_details": "Car part could not be calculated"},
+            )
+
+    def calculate_route(
+        self,
+        departure: str,
+        arrival: str,
+        departure_coords: Tuple[float, float],
+        arrival_coords: Tuple[float, float],
+    ) -> Optional[RouteData]:
         """
         Calculate train route between two stadiums.
-        
+
         Args:
-            departure: Departure stadium name
-            arrival: Arrival stadium name
+            departure: Departure team name
+            arrival: Arrival team name
             departure_coords: Departure coordinates (lat, lng)
             arrival_coords: Arrival coordinates (lat, lng)
-            
+
         Returns:
             RouteData object or None if calculation fails
         """
         # get closest station
-        origin_id, _ = self._get_closest_station(departure, departure_coords[0], departure_coords[1])
-        destination_id, _ = self._get_closest_station(arrival, arrival_coords[0], arrival_coords[1])
-        
-        # Get train route using transit mode
-        print(origin_id, destination_id)
-        week_trains = self._get_week_journeys(origin_id, destination_id, datetime.now() + timedelta(days=1))
-        if week_trains:
-            fastest_train = min(week_trains, key=lambda train: self._trip_stats(train["sections"])["duration_s"])
-            fastest_train_route = self._trip_stats(fastest_train["sections"])
-            print(fastest_train_route['duration_s']*2)
-            return RouteData(
-                departure=departure,
-                arrival=arrival,
-                travel_time_seconds=fastest_train_route['duration_s']*2,
-                distance_km=fastest_train_route['distance_km']*2,
-                emissions_kg_co2=fastest_train_route['carbon_emission_kgCO2']*2*self.number_of_passengers,  # Round trip
-                transport_type="train",
-                route_details={"train_route_details":fastest_train_route["details"]},
-            )
-        else:
-            print(f"No train route found for {departure} to {arrival}...")
+        stop_area_departures: List[str] = self.gare_positions_df[
+            self.gare_positions_df["team_name"] == departure
+        ]["stop_area_id"].tolist()
+        stop_area_arrivals: List[str] = self.gare_positions_df[
+            self.gare_positions_df["team_name"] == arrival
+        ]["stop_area_id"].tolist()
+
+        week_trains = []
+        for stop_area_departure in tqdm(stop_area_departures):
+            for stop_area_arrival in stop_area_arrivals:
+                new_week_trains = self._get_week_journeys(
+                    stop_area_departure, stop_area_arrival, datetime(2025, 10, 29)
+                )
+                new_week_trains = [
+                    {
+                        "stop_area_departure_id": stop_area_departure,
+                        "stop_area_arrival_id": stop_area_arrival,
+                    }
+                    | week_train
+                    for week_train in new_week_trains
+                ]
+                week_trains.extend(new_week_trains)
+        if not week_trains:
+            self.logger.info("No train route found for %s to %s...", departure, arrival)
             return RouteData(
                 departure=departure,
                 arrival=arrival,
@@ -180,16 +301,49 @@ class TrainTrajetService(BaseTransportService):
                 distance_km=0,
                 emissions_kg_co2=0,
                 transport_type="train",
-                route_details={"train_route_details":"No train route found"},
+                route_details={"train_route_details": "No train route found"},
             )
 
-    def run_complete_analysis(self, output_filename: str = TRAIN_EMISSIONS_FILENAME) -> List[RouteData]:
+        # train part
+        fastest_train = min(
+            week_trains,
+            key=lambda train: self._trip_stats(train["sections"])["duration_s"],
+        )
+        fastest_train_route = self._trip_stats(fastest_train["sections"])
+
+        # car part
+        car_route: RouteData = self._calculate_car_part(
+            departure,
+            arrival,
+            fastest_train["stop_area_departure_id"],
+            fastest_train["stop_area_arrival_id"],
+        )
+        return RouteData(
+            departure=departure,
+            arrival=arrival,
+            travel_time_seconds=fastest_train_route["duration_s"] * 2
+            + car_route.travel_time_seconds,
+            distance_km=fastest_train_route["distance_km"] * 2 + car_route.distance_km,
+            emissions_kg_co2=fastest_train_route["carbon_emission_kgCO2"]
+            * 2
+            * self.number_of_passengers
+            + car_route.emissions_kg_co2,  # Round trip
+            transport_type="train",
+            route_details={
+                "train_route_details": fastest_train_route["details"],
+                "car_route_details": car_route.route_details,
+            },
+        )
+
+    def run_complete_analysis(
+        self, output_filename: str = TRAIN_EMISSIONS_FILENAME
+    ) -> List[RouteData]:
         """
         Run the complete analysis pipeline.
-        
+
         Args:
             output_filename: Name of the output CSV file
-            
+
         Returns:
             List of RouteData objects
         """
