@@ -8,12 +8,14 @@ This service provides functionality to:
 """
 
 import os
+import time
 from datetime import datetime, timedelta
 from typing import Any, List, Optional, Tuple
 
 import pandas as pd
 import requests
 from requests.auth import HTTPBasicAuth
+from requests.exceptions import ReadTimeout, RequestException
 from tqdm import tqdm
 
 from backend.global_variables import (
@@ -116,31 +118,68 @@ class TrainTrajetService(BaseTransportService):
             "details": details,
         }
 
-    def _get_week_journeys(
-        self, from_id: str, to_id: str, start_date: datetime
+    def _get_sncf_journeys(
+        self,
+        from_id: str,
+        to_id: str,
+        start_date: datetime,
+        n_days: int,
+        max_retries: int = 3,
     ) -> list[dict[str, Any]]:
         url = "https://api.sncf.com/v1/coverage/sncf/journeys"
         week_trains = []
-        dt = start_date
+        date_query = start_date
 
-        for _ in range(7):  # 7 days
+        for _ in range(n_days):
             params = {
                 "from": from_id,
                 "to": to_id,
-                "datetime": dt.strftime("%Y%m%dT%H%M%S"),
+                "datetime": date_query.strftime("%Y%m%dT%H%M%S"),
             }
-            r = requests.get(
-                url,
-                params=params,
-                auth=HTTPBasicAuth(self.sncf_api_key, ""),
-                timeout=30,
-            )
-            data = r.json()
-            journeys = data.get("journeys", [])
-            for j in journeys:
-                week_trains.append(j)
+
+            # Retry logic with exponential backoff
+            retries = 0
+            while retries <= max_retries:
+                try:
+                    r = requests.get(
+                        url,
+                        params=params,
+                        auth=HTTPBasicAuth(self.sncf_api_key, ""),
+                        timeout=60,  # Increased timeout to 60 seconds
+                    )
+                    r.raise_for_status()  # Raise an exception for bad status codes
+                    data = r.json()
+                    journeys = data.get("journeys", [])
+                    for j in journeys:
+                        week_trains.append(j)
+                    break  # Success, exit retry loop
+
+                except (ReadTimeout, RequestException) as e:
+                    retries += 1
+                    if retries > max_retries:
+                        self.logger.error(
+                            "SNCF API request failed after %d retries for %s -> %s on %s: %s",
+                            max_retries,
+                            from_id,
+                            to_id,
+                            date_query.strftime("%Y%m%dT%H%M%S"),
+                            e,
+                        )
+                        # Continue to next day instead of failing completely
+                        break
+                    else:
+                        wait_time = 2**retries  # Exponential backoff: 2, 4, 8 seconds
+                        self.logger.warning(
+                            "SNCF API request failed (attempt %d/%d): %s. Retrying in %d seconds...",
+                            retries,
+                            max_retries,
+                            e,
+                            wait_time,
+                        )
+                        time.sleep(wait_time)
+
             # move to next day at 00:00
-            dt += timedelta(days=1)
+            date_query += timedelta(days=1)
         return week_trains
 
     def _calculate_car_part(
@@ -276,12 +315,20 @@ class TrainTrajetService(BaseTransportService):
         stop_area_arrivals: List[str] = self.gare_positions_df[
             self.gare_positions_df["team_name"] == arrival
         ]["stop_area_id"].tolist()
+        self.logger.debug("departure: %s", departure)
+        self.logger.debug("stop_area_departures: %s", stop_area_departures)
+        self.logger.debug("arrival: %s", arrival)
+        self.logger.debug("stop_area_arrivals: %s", stop_area_arrivals)
 
         week_trains = []
         for stop_area_departure in tqdm(stop_area_departures):
             for stop_area_arrival in stop_area_arrivals:
-                new_week_trains = self._get_week_journeys(
-                    stop_area_departure, stop_area_arrival, datetime(2025, 10, 29)
+                new_week_trains = self._get_sncf_journeys(
+                    stop_area_departure,
+                    stop_area_arrival,
+                    datetime.now().replace(hour=7, minute=0, second=0, microsecond=0)
+                    + timedelta(days=2),
+                    3,
                 )
                 new_week_trains = [
                     {
@@ -347,4 +394,6 @@ class TrainTrajetService(BaseTransportService):
         Returns:
             List of RouteData objects
         """
+        self.logger.debug("Running complete analysis...")
+        self.logger.debug("output_filename: %s", output_filename)
         super().run_complete_analysis(output_filename)

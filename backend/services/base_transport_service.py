@@ -73,7 +73,7 @@ class BaseTransportService(ABC):
 
         # Setup rich logging
         logging.basicConfig(
-            level=logging.INFO,
+            level=logging.DEBUG,
             format="%(message)s",
             datefmt="[%X]",
             handlers=[RichHandler(console=self.console, rich_tracebacks=True)],
@@ -92,6 +92,7 @@ class BaseTransportService(ABC):
         json_data: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
         method: str = "GET",
+        retries: int = 3,
     ) -> Optional[Dict[str, Any]]:
         """
         Make a request to Google Maps API with error handling.
@@ -115,16 +116,19 @@ class BaseTransportService(ABC):
                 )
             else:
                 response = requests.get(url, params=params, headers=headers, timeout=30)
-
             response.raise_for_status()
-            data = response.json()
-
-            self.logger.debug("Google Maps API request successful")
-            return data
-
+            return response.json()
         except requests.RequestException as e:
-            self.logger.error("Google Maps API request failed: %s", e)
-            return None
+            if retries > 0:
+                self.logger.warning(
+                    "Google Maps API request failed: %s, retrying...", e
+                )
+                return self._make_google_maps_request(
+                    url, params, json_data, headers, method, retries - 1
+                )
+            else:
+                self.logger.error("Google Maps API request failed: %s", e)
+                return None
 
     def _load_road_distance_cache(self) -> None:
         """
@@ -402,7 +406,7 @@ class BaseTransportService(ABC):
         try:
             self.stadium_df = pd.read_csv(
                 DATA_PATH + LOCALISATION_STADE_FILENAME, index_col=0
-            )
+            ).reset_index(drop=True)
 
         except FileNotFoundError as exc:
             raise FileNotFoundError(
@@ -527,16 +531,44 @@ class BaseTransportService(ABC):
             RouteData object or None if calculation fails
         """
 
-    def process_all_routes(self) -> List[RouteData]:
+    def process_all_routes(self, output_filename: str | None = None) -> List[RouteData]:
         """
         Process all possible routes between stadiums.
-
 
         Returns:
             List of RouteData objects for all stadium pairs
         """
         self.logger.info("Starting route processing...")
         routes = []
+
+        # Create a set to keep track of already computed stadium pairs
+        computed_pairs = set()
+
+        # Try to load already saved routes to avoid recomputation
+        if output_filename is not None:
+            try:
+                existing_df = pd.read_csv(DATA_PATH + output_filename).reset_index(
+                    drop=True
+                )
+                for _, row in existing_df.iterrows():
+                    dep = row["departure"]
+                    arr = row["arrival"]
+                    # Use frozenset to treat route between A <-> B as interchangeable
+                    computed_pairs.add(frozenset((dep, arr)))
+                    # Initialize routes list from existing file
+                    route = RouteData(
+                        departure=row["departure"],
+                        arrival=row["arrival"],
+                        travel_time_seconds=int(row["travel_time_seconds"]),
+                        distance_km=float(row["distance_km"]),
+                        emissions_kg_co2=float(row["emissions_kg_co2"]),
+                        transport_type=row["transport_type"],
+                        route_details=row["route_details"],
+                    )
+                    routes.append(route)
+
+            except (FileNotFoundError, pd.errors.EmptyDataError, KeyError):
+                self.logger.warning("No existing routes file found, starting fresh")
 
         # Calculate total number of route pairs
         total_teams = len(self.stadium_df)
@@ -547,6 +579,7 @@ class BaseTransportService(ABC):
         )
 
         for i, stadium_row in self.stadium_df.iterrows():
+            print(i)
             departure = stadium_row["Team"]  # Team name
             departure_coords = (
                 stadium_row["latitude"],
@@ -561,12 +594,22 @@ class BaseTransportService(ABC):
                     stadium_row2["longitude"],
                 )  # lat, lng
 
+                pair_key = frozenset((departure, arrival))
+                if pair_key in computed_pairs:
+                    self.logger.debug(
+                        "Skipping already computed route: %s -> %s", departure, arrival
+                    )
+                    continue
+
+                self.logger.debug("Calculating route: %s -> %s", departure, arrival)
                 route = self.calculate_route(
                     departure, arrival, departure_coords, arrival_coords
                 )
                 if route:
                     routes.append(route)
-
+                    computed_pairs.add(pair_key)
+                    if output_filename:
+                        self._save_route_data(routes, output_filename)
         self.logger.info(
             "Route processing complete! %d routes calculated successfully", len(routes)
         )
@@ -582,9 +625,11 @@ class BaseTransportService(ABC):
         Returns:
             List of RouteData objects
         """
-        self.logger.info("Starting complete %s analysis...", self.__class__.__name__)
+        self.logger.info(
+            "Starting complete %s analysis...", str(self.__class__.__name__)
+        )
 
-        routes = self.process_all_routes()
+        routes = self.process_all_routes(output_filename)
 
         if routes:
             self._save_route_data(routes, output_filename)

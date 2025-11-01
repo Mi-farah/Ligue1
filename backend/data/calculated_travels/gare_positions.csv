@@ -11,6 +11,7 @@ Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87223263,Lille 
 Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87287250,Lille Porte de Douai (Lille),50.612114,3.075075,4.066619947693839
 Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87109306,Lille Centre Hospitalier Régional (Lille),50.614297,3.034278,6.951969573615195
 Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87287102,Lezennes (Lille),50.620531,3.097777,2.666570734871469
+Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87286062,Hellemmes (Lille),50.622635,3.114932,1.7730877224163584
 Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87722025,Lyon Perrache (Lyon),45.748508,4.825777,12.26386550452881
 Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87721001,Lyon Vaise (Lyon),45.77976,4.804186,13.887972788374316
 Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87282624,Lyon - Jean Macé (Lyon),45.74503,4.841499,11.131588123585823
@@ -18,13 +19,16 @@ Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87721175,Lyon Gorge de Loup (Lyon),45.
 Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87723197,Lyon Part Dieu (Lyon),45.760596,4.859409,9.525938359642904
 Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87721159,Lyon - Saint-Paul (Lyon),45.766077,4.826954,12.029484781631263
 Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87697136,Lyon-Perrache - Gare Routière (Lyon),45.74912,4.827332,12.134343432712116
-Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87698340,Lyon-Saint-Paul - La Feuillée (Lyon),45.765943,4.827477,11.988822292744066
 Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87751008,Marseille Saint-Charles (Marseille),43.302666,5.380407,3.857543497862477
 Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87751081,Marseille Blancarde (Marseille),43.296195,5.406588,3.053522289937646
 Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87751602,L'Estaque (Marseille),43.363646,5.321342,12.047487336860934
 Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87751719,La Pomme (Marseille),43.290481,5.441279,4.330319854155177
 Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87635581,La Barasse (Marseille),43.285319,5.482365,7.207613538376944
 Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87751701,Saint-Marcel (Marseille),43.2882,5.467117,6.115174266510529
+Monaco,Monaco,Stade Louis II,stop_area:SNCF:87756056,Nice (Nice),43.704556,7.261904,12.61520705528793
+Monaco,Monaco,Stade Louis II,stop_area:SNCF:87590299,Nice Pont Michel (Nice),43.722692,7.291671,9.973644555188562
+Monaco,Monaco,Stade Louis II,stop_area:SNCF:87756353,Nice Riquier (Nice),43.705554,7.290175,10.37377686651797
+Monaco,Monaco,Stade Louis II,stop_area:SNCF:87756254,Nice Saint-Augustin (Nice),43.670728,7.216199,17.23195554308972
 Montpellier,Montpellier,Stade de la Mosson,stop_area:SNCF:87773002,Montpellier Saint-Roch (Montpellier),43.604738,3.880674,5.852889837497483
 Montpellier,Montpellier,Stade de la Mosson,stop_area:SNCF:87688887,Montpellier Sud de France (Montpellier),43.595146,3.924009,9.499879624854469
 Nantes,Nantes,Stade de la Beaujoire,stop_area:SNCF:87481002,Nantes (Nantes),47.217491,-1.542077,4.481504333870502
