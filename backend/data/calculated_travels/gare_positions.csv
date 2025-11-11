@@ -1,0 +1,72 @@
+location,team_name,stadium_name,stop_area_id,gare_name,latitude,longitude,distance_to_stadium
+Angers,Angers,Stade Raymond Kopa,stop_area:SNCF:87484006,Angers Saint-Laud (Angers),47.464649,-0.55677,2.000113487888072
+Angers,Angers,Stade Raymond Kopa,stop_area:SNCF:87484048,Angers Maître École (Angers),47.466953,-0.532437,0.6743972877696846
+Auxerre,Auxerre,Stade Abbé Deschamps,stop_area:SNCF:87683573,Auxerre-Saint-Gervais (Auxerre),47.797645,3.58514,1.2381577835192419
+Brest,Brest,Stade Francis-Le Blé,stop_area:SNCF:87474007,Brest (Brest),48.387693,-4.480094,2.1788797446368355
+Le Havre,Le Havre,Stade Océane,stop_area:SNCF:87413013,Le Havre (Le Havre),49.492624,0.124644,3.3100994150206167
+Lens,Lens,Stade Bollaert-Delelis,stop_area:SNCF:87345025,Lens (Lens),50.426866,2.828301,1.150465129312833
+Lens,Lens,Stade Bollaert-Delelis,stop_area:SNCF:87345033,Loos-en-Gohelle (Lens),50.437864,2.793543,1.6232036327328858
+Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87286005,Lille Flandres (Lille),50.636577,3.06987,5.244706976932295
+Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87223263,Lille Europe (Lille),50.6394,3.075721,5.086956553751241
+Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87287250,Lille Porte de Douai (Lille),50.612114,3.075075,4.066619947693839
+Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87109306,Lille Centre Hospitalier Régional (Lille),50.614297,3.034278,6.951969573615195
+Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87287102,Lezennes (Lille),50.620531,3.097777,2.666570734871469
+Lille,Lille,Decathlon Arena Pierre Mauroy Stadium,stop_area:SNCF:87286062,Hellemmes (Lille),50.622635,3.114932,1.7730877224163584
+Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87722025,Lyon Perrache (Lyon),45.748508,4.825777,12.26386550452881
+Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87721001,Lyon Vaise (Lyon),45.77976,4.804186,13.887972788374316
+Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87282624,Lyon - Jean Macé (Lyon),45.74503,4.841499,11.131588123585823
+Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87721175,Lyon Gorge de Loup (Lyon),45.766095,4.804697,13.755901310666932
+Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87723197,Lyon Part Dieu (Lyon),45.760596,4.859409,9.525938359642904
+Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87721159,Lyon - Saint-Paul (Lyon),45.766077,4.826954,12.029484781631263
+Lyon,Lyon,Groupama Stadium,stop_area:SNCF:87697136,Lyon-Perrache - Gare Routière (Lyon),45.74912,4.827332,12.134343432712116
+Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87751008,Marseille Saint-Charles (Marseille),43.302666,5.380407,3.857543497862477
+Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87751081,Marseille Blancarde (Marseille),43.296195,5.406588,3.053522289937646
+Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87751602,L'Estaque (Marseille),43.363646,5.321342,12.047487336860934
+Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87751719,La Pomme (Marseille),43.290481,5.441279,4.330319854155177
+Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87635581,La Barasse (Marseille),43.285319,5.482365,7.207613538376944
+Marseille,Marseille,Orange Vélodrome,stop_area:SNCF:87751701,Saint-Marcel (Marseille),43.2882,5.467117,6.115174266510529
+Monaco,Monaco,Stade Louis II,stop_area:SNCF:87756056,Nice (Nice),43.704556,7.261904,12.61520705528793
+Monaco,Monaco,Stade Louis II,stop_area:SNCF:87590299,Nice Pont Michel (Nice),43.722692,7.291671,9.973644555188562
+Monaco,Monaco,Stade Louis II,stop_area:SNCF:87756353,Nice Riquier (Nice),43.705554,7.290175,10.37377686651797
+Monaco,Monaco,Stade Louis II,stop_area:SNCF:87756254,Nice Saint-Augustin (Nice),43.670728,7.216199,17.23195554308972
+Montpellier,Montpellier,Stade de la Mosson,stop_area:SNCF:87773002,Montpellier Saint-Roch (Montpellier),43.604738,3.880674,5.852889837497483
+Montpellier,Montpellier,Stade de la Mosson,stop_area:SNCF:87688887,Montpellier Sud de France (Montpellier),43.595146,3.924009,9.499879624854469
+Nantes,Nantes,Stade de la Beaujoire,stop_area:SNCF:87481002,Nantes (Nantes),47.217491,-1.542077,4.481504333870502
+Nantes,Nantes,Stade de la Beaujoire,stop_area:SNCF:87481051,Chantenay (Nantes),47.1972,-1.594332,8.39345490291603
+Nantes,Nantes,Stade de la Beaujoire,stop_area:SNCF:87463083,Nantes Pirmil (Nantes),47.196728,-1.543024,6.737353557592493
+Nantes,Nantes,Stade de la Beaujoire,stop_area:SNCF:87590331,Haluchère Batignolles Beaujoire (Nantes),47.249196,-1.522475,0.7771080380110975
+Nice,Nice,Allianz Riviera,stop_area:SNCF:87756056,Nice (Nice),43.704556,7.261904,5.570485252985872
+Nice,Nice,Allianz Riviera,stop_area:SNCF:87590299,Nice Pont Michel (Nice),43.722692,7.291671,8.1984870739031
+Nice,Nice,Allianz Riviera,stop_area:SNCF:87756353,Nice Riquier (Nice),43.705554,7.290175,7.842781934286796
+Nice,Nice,Allianz Riviera,stop_area:SNCF:87756254,Nice Saint-Augustin (Nice),43.670728,7.216199,4.266883889990663
+Paris,Paris Saint-Germain,Parc des Princes,stop_area:SNCF:87686006,Paris - Gare de Lyon - Hall 1 & 2 (Paris),48.844945,2.373481,8.821716891389096
+Paris,Paris Saint-Germain,Parc des Princes,stop_area:SNCF:87113001,Paris Est (Paris),48.876793,2.359296,8.710243253959504
+Paris,Paris Saint-Germain,Parc des Princes,stop_area:SNCF:87271007,Paris Nord (Paris),48.880136,2.354851,8.600950310372431
+Paris,Paris Saint-Germain,Parc des Princes,stop_area:SNCF:87384008,Paris Saint-Lazare (Paris),48.876242,2.325331,6.55276812467928
+Paris,Paris Saint-Germain,Parc des Princes,stop_area:SNCF:87391003,Paris - Montparnasse - Hall 1 & 2 (Paris),48.841172,2.320514,4.93724921938645
+Paris,Paris Saint-Germain,Parc des Princes,stop_area:SNCF:87547000,Paris Austerlitz (Paris),48.842285,2.364891,8.185236066811223
+Paris,Paris Saint-Germain,Parc des Princes,stop_area:SNCF:87547026,Paris Austerlitz RER C (Paris),48.842285,2.364891,8.185236066811223
+Paris,Paris Saint-Germain,Parc des Princes,stop_area:SNCF:87686667,Paris-Bercy Bourgogne - Pays d'Auvergne (Paris),48.839215,2.382791,9.498153148120123
+Reims,Reims,Stade Auguste Delaune,stop_area:SNCF:87171009,Reims (Reims),49.259014,4.024338,1.3301154439739677
+Reims,Reims,Stade Auguste Delaune,stop_area:SNCF:87747360,Reims Gouraud (Reims),49.244794,4.048719,1.8166552220006675
+Reims,Reims,Stade Auguste Delaune,stop_area:SNCF:87171272,Reims Maison Blanche (Reims),49.233406,4.022648,1.5205546086296438
+Reims,Reims,Stade Auguste Delaune,stop_area:SNCF:87747378,Reims Saint-Symphorien (Reims),49.255102,4.03603,1.2536095102199891
+Reims,Reims,Stade Auguste Delaune,stop_area:SNCF:87417444,Franchet d'Esperey (Reims),49.242536,4.013869,0.8867031257226188
+Rennes,Rennes,Roazhon Park,stop_area:SNCF:87471003,Rennes (Rennes),48.103517,-1.672744,3.0117004838310097
+Rennes,Rennes,Roazhon Park,stop_area:SNCF:87334508,La Poterie (Rennes),48.092345,-1.630773,6.324503685649055
+Rennes,Rennes,Roazhon Park,stop_area:SNCF:87717629,Rennes Beaulieu Chimie (Rennes),48.117098,-1.633905,5.958832934907676
+Rennes,Rennes,Roazhon Park,stop_area:SNCF:87471391,Pontchaillou (Rennes),48.118641,-1.691118,2.0359148626799533
+Strasbourg,Strasbourg,Stade de la Meinau,stop_area:SNCF:87212027,Strasbourg (Strasbourg),48.584532,7.734793,3.110633766542273
+Strasbourg,Strasbourg,Stade de la Meinau,stop_area:SNCF:87338525,Krimmeri Meinau (Strasbourg),48.563644,7.752614,0.44483286598768845
+Saint-Étienne,Saint-Étienne,Stade Geoffroy Guichard,stop_area:SNCF:87726158,Saint-Étienne - La Terrasse (Saint-Étienne),45.464868,4.379554,0.9098310364978625
+Saint-Étienne,Saint-Étienne,Stade Geoffroy Guichard,stop_area:SNCF:87726000,Saint-Étienne Châteaucreux (Saint-Étienne),45.443366,4.399722,2.0690726684775784
+Saint-Étienne,Saint-Étienne,Stade Geoffroy Guichard,stop_area:SNCF:87726190,Saint-Étienne - Bellevue (Saint-Étienne),45.417198,4.392683,4.8235186591753365
+Toulouse,Toulouse,Stadium de Toulouse,stop_area:SNCF:87611004,Toulouse Matabiau (Toulouse),43.611206,1.453616,3.480463745217964
+Toulouse,Toulouse,Stadium de Toulouse,stop_area:SNCF:87353573,Le Toec (Toulouse),43.595554,1.401371,2.9637144175868273
+Toulouse,Toulouse,Stadium de Toulouse,stop_area:SNCF:87611939,Lardenne (Toulouse),43.596688,1.383056,4.3683734594578905
+Toulouse,Toulouse,Stadium de Toulouse,stop_area:SNCF:87612010,Montaudran (Toulouse),43.573691,1.480201,3.8681688695419383
+Toulouse,Toulouse,Stadium de Toulouse,stop_area:SNCF:87611301,Saint-Agne (Toulouse),43.579477,1.45012,1.3624963664990515
+Toulouse,Toulouse,Stadium de Toulouse,stop_area:SNCF:87611434,Lacourtensourt (Toulouse),43.663842,1.41409,9.099109355400934
+Toulouse,Toulouse,Stadium de Toulouse,stop_area:SNCF:87353581,Les Ramassiers (Toulouse),43.602399,1.352946,6.868139998217792
+Toulouse,Toulouse,Stadium de Toulouse,stop_area:SNCF:87353599,Saint-Martin du Touch (Toulouse),43.599788,1.371855,5.33385260660906
+Toulouse,Toulouse,Stadium de Toulouse,stop_area:SNCF:87497461,Gallieni - Cancéropôle (Toulouse),43.573088,1.41958,1.626951410823393

@@ -1,9 +1,6 @@
 # Ignore cache files and data outputs
 *.caches
 
-# Ignore CSVs generated as cache or output
-*.csv
-
 # Ignore data and cache folders
 cache/
 __pycache__/
@@ -23,3 +20,4 @@ __pycache__/
 dist/
 build/
 .venv/
+*.DS_Store

@@ -2,11 +2,12 @@ from enum import Enum
 
 DATA_PATH = "./backend/data/calculated_travels/"
 NAME_STADE_FILENAME = 'name-stade.csv'
-AIRPORT_CACHE_FILENAME = "airport_cache.csv"
+AIRPORT_CACHE_FILENAME  = "airport_positions.csv"
 FLIGHT_EMISSIONS_FILENAME = "flight_emissions.csv"
 LOCALISATION_STADE_FILENAME = 'localisation_stade.csv'
 CAR_EMISSIONS_FILENAME = "car_emissions.csv"
 TRAIN_EMISSIONS_FILENAME = "train_emissions.csv"
+ROAD_DISTANCE_CACHE_FILENAME = "road_distance_cache.csv"
 
 class TravelMode(Enum):
     """Travel modes for Google Maps API."""
@@ -28,8 +29,8 @@ class GoogleMapsUrls(Enum):
     
     # Specific endpoints
     GEOCODING: str = "https://maps.googleapis.com/maps/api/geocode/json"
-    NEARBY_PLACE: str = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-    DIRECTION: str = "https://maps.googleapis.com/maps/api/directions/json"
+    NEARBY_PLACE: str = "https://places.googleapis.com/v1/places:searchNearby"
+    DIRECTION: str = "https://routes.googleapis.com/directions/v2:computeRoutes"
 
 
 ## CO2 emissions calculations variables
