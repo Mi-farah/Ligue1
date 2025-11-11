@@ -26,12 +26,17 @@ class CarTrajetService(BaseTransportService):
         )
         self.autocar_emission_factor = AUTO_CAR_EMISSION_FACTOR  # kgCO2/passenger/km
 
+    def calculate_emissions(self, distance_km: float) -> float:
+        """Calculate emissions for a given distance in kilometers."""
+        return self.autocar_emission_factor * distance_km * self.number_of_passengers
+
     def calculate_route(
         self,
         departure: str,
         arrival: str,
         departure_coords: Tuple[float, float],
         arrival_coords: Tuple[float, float],
+        round_trip: bool = True,
     ) -> Optional[RouteData]:
         """
         Calculate car route between two stadiums.
@@ -56,19 +61,15 @@ class CarTrajetService(BaseTransportService):
             origin_coords, destination_coords
         )
         if distance_km is not None and duration_seconds is not None:
-            distance_km = distance_km
-            duration_seconds = duration_seconds
             # Calculate emissions with round trip multiplier
-            emissions = (
-                self.autocar_emission_factor * distance_km * self.number_of_passengers
-            )  # kg of CO2
-
+            emissions = self.calculate_emissions(distance_km)  # kg of CO2
+            multiplier = 2 if round_trip else 1
             return RouteData(
                 departure=departure,
                 arrival=arrival,
-                travel_time_seconds=duration_seconds * 2,
-                distance_km=distance_km * 2,
-                emissions_kg_co2=emissions * 2,
+                travel_time_seconds=duration_seconds * multiplier,
+                distance_km=distance_km * multiplier,
+                emissions_kg_co2=emissions * multiplier,
                 transport_type="car",
                 route_details={
                     "one_way_distance_km": distance_km,

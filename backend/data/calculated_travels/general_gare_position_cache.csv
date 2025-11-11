@@ -1,0 +1,106 @@
+base_name,stop_area_id,gare_name,latitude,longitude
+Angers Saint-Laud (Angers),stop_area:SNCF:87484006,Angers Saint-Laud (Angers),47.464649,-0.55677
+Angers Maître École (Angers),stop_area:SNCF:87484048,Angers Maître École (Angers),47.466953,-0.532437
+Auxerre-Saint-Gervais (Auxerre),stop_area:SNCF:87683573,Auxerre-Saint-Gervais (Auxerre),47.797645,3.58514
+Brest (Brest),stop_area:SNCF:87474007,Brest (Brest),48.387693,-4.480094
+Le Havre (Le Havre),stop_area:SNCF:87413013,Le Havre (Le Havre),49.492624,0.124644
+Lens (Lens),stop_area:SNCF:87345025,Lens (Lens),50.426866,2.828301
+Loos-en-Gohelle (Lens),stop_area:SNCF:87345033,Loos-en-Gohelle (Lens),50.437864,2.793543
+Lille Flandres (Lille),stop_area:SNCF:87286005,Lille Flandres (Lille),50.636577,3.06987
+Lille Europe (Lille),stop_area:SNCF:87223263,Lille Europe (Lille),50.6394,3.075721
+Lille Porte de Douai (Lille),stop_area:SNCF:87287250,Lille Porte de Douai (Lille),50.612114,3.075075
+Lille Centre Hospitalier Régional (Lille),stop_area:SNCF:87109306,Lille Centre Hospitalier Régional (Lille),50.614297,3.034278
+Lezennes (Lille),stop_area:SNCF:87287102,Lezennes (Lille),50.620531,3.097777
+Hellemmes (Lille),stop_area:SNCF:87286062,Hellemmes (Lille),50.622635,3.114932
+Lyon Perrache (Lyon),stop_area:SNCF:87722025,Lyon Perrache (Lyon),45.748508,4.825777
+Lyon Vaise (Lyon),stop_area:SNCF:87721001,Lyon Vaise (Lyon),45.77976,4.804186
+Lyon - Jean Macé (Lyon),stop_area:SNCF:87282624,Lyon - Jean Macé (Lyon),45.74503,4.841499
+Lyon Gorge de Loup (Lyon),stop_area:SNCF:87721175,Lyon Gorge de Loup (Lyon),45.766095,4.804697
+Lyon Part Dieu (Lyon),stop_area:SNCF:87723197,Lyon Part Dieu (Lyon),45.760596,4.859409
+Lyon - Saint-Paul (Lyon),stop_area:SNCF:87721159,Lyon - Saint-Paul (Lyon),45.766077,4.826954
+Lyon-Perrache - Gare Routière (Lyon),stop_area:SNCF:87697136,Lyon-Perrache - Gare Routière (Lyon),45.74912,4.827332
+Marseille Saint-Charles (Marseille),stop_area:SNCF:87751008,Marseille Saint-Charles (Marseille),43.302666,5.380407
+Marseille Blancarde (Marseille),stop_area:SNCF:87751081,Marseille Blancarde (Marseille),43.296195,5.406588
+L'Estaque (Marseille),stop_area:SNCF:87751602,L'Estaque (Marseille),43.363646,5.321342
+La Pomme (Marseille),stop_area:SNCF:87751719,La Pomme (Marseille),43.290481,5.441279
+La Barasse (Marseille),stop_area:SNCF:87635581,La Barasse (Marseille),43.285319,5.482365
+Saint-Marcel (Marseille),stop_area:SNCF:87751701,Saint-Marcel (Marseille),43.2882,5.467117
+Nice (Nice),stop_area:SNCF:87756056,Nice (Nice),43.704556,7.261904
+Nice Pont Michel (Nice),stop_area:SNCF:87590299,Nice Pont Michel (Nice),43.722692,7.291671
+Nice Riquier (Nice),stop_area:SNCF:87756353,Nice Riquier (Nice),43.705554,7.290175
+Nice Saint-Augustin (Nice),stop_area:SNCF:87756254,Nice Saint-Augustin (Nice),43.670728,7.216199
+Montpellier Saint-Roch (Montpellier),stop_area:SNCF:87773002,Montpellier Saint-Roch (Montpellier),43.604738,3.880674
+Montpellier Sud de France (Montpellier),stop_area:SNCF:87688887,Montpellier Sud de France (Montpellier),43.595146,3.924009
+Nantes (Nantes),stop_area:SNCF:87481002,Nantes (Nantes),47.217491,-1.542077
+Chantenay (Nantes),stop_area:SNCF:87481051,Chantenay (Nantes),47.1972,-1.594332
+Nantes Pirmil (Nantes),stop_area:SNCF:87463083,Nantes Pirmil (Nantes),47.196728,-1.543024
+Haluchère Batignolles Beaujoire (Nantes),stop_area:SNCF:87590331,Haluchère Batignolles Beaujoire (Nantes),47.249196,-1.522475
+Nice (Nice),stop_area:SNCF:87756056,Nice (Nice),43.704556,7.261904
+Nice Pont Michel (Nice),stop_area:SNCF:87590299,Nice Pont Michel (Nice),43.722692,7.291671
+Nice Riquier (Nice),stop_area:SNCF:87756353,Nice Riquier (Nice),43.705554,7.290175
+Nice Saint-Augustin (Nice),stop_area:SNCF:87756254,Nice Saint-Augustin (Nice),43.670728,7.216199
+Paris - Gare de Lyon - Hall 1 & 2 (Paris),stop_area:SNCF:87686006,Paris - Gare de Lyon - Hall 1 & 2 (Paris),48.844945,2.373481
+Paris Est (Paris),stop_area:SNCF:87113001,Paris Est (Paris),48.876793,2.359296
+Paris Nord (Paris),stop_area:SNCF:87271007,Paris Nord (Paris),48.880136,2.354851
+Paris Saint-Lazare (Paris),stop_area:SNCF:87384008,Paris Saint-Lazare (Paris),48.876242,2.325331
+Paris - Montparnasse - Hall 1 & 2 (Paris),stop_area:SNCF:87391003,Paris - Montparnasse - Hall 1 & 2 (Paris),48.841172,2.320514
+Paris Austerlitz (Paris),stop_area:SNCF:87547000,Paris Austerlitz (Paris),48.842285,2.364891
+Paris Austerlitz RER C (Paris),stop_area:SNCF:87547026,Paris Austerlitz RER C (Paris),48.842285,2.364891
+Paris-Bercy Bourgogne - Pays d'Auvergne (Paris),stop_area:SNCF:87686667,Paris-Bercy Bourgogne - Pays d'Auvergne (Paris),48.839215,2.382791
+Reims (Reims),stop_area:SNCF:87171009,Reims (Reims),49.259014,4.024338
+Reims Gouraud (Reims),stop_area:SNCF:87747360,Reims Gouraud (Reims),49.244794,4.048719
+Reims Maison Blanche (Reims),stop_area:SNCF:87171272,Reims Maison Blanche (Reims),49.233406,4.022648
+Reims Saint-Symphorien (Reims),stop_area:SNCF:87747378,Reims Saint-Symphorien (Reims),49.255102,4.03603
+Franchet d'Esperey (Reims),stop_area:SNCF:87417444,Franchet d'Esperey (Reims),49.242536,4.013869
+Rennes (Rennes),stop_area:SNCF:87471003,Rennes (Rennes),48.103517,-1.672744
+La Poterie (Rennes),stop_area:SNCF:87334508,La Poterie (Rennes),48.092345,-1.630773
+Rennes Beaulieu Chimie (Rennes),stop_area:SNCF:87717629,Rennes Beaulieu Chimie (Rennes),48.117098,-1.633905
+Pontchaillou (Rennes),stop_area:SNCF:87471391,Pontchaillou (Rennes),48.118641,-1.691118
+Strasbourg (Strasbourg),stop_area:SNCF:87212027,Strasbourg (Strasbourg),48.584532,7.734793
+Krimmeri Meinau (Strasbourg),stop_area:SNCF:87338525,Krimmeri Meinau (Strasbourg),48.563644,7.752614
+Saint-Étienne - La Terrasse (Saint-Étienne),stop_area:SNCF:87726158,Saint-Étienne - La Terrasse (Saint-Étienne),45.464868,4.379554
+Saint-Étienne Châteaucreux (Saint-Étienne),stop_area:SNCF:87726000,Saint-Étienne Châteaucreux (Saint-Étienne),45.443366,4.399722
+Saint-Étienne - Bellevue (Saint-Étienne),stop_area:SNCF:87726190,Saint-Étienne - Bellevue (Saint-Étienne),45.417198,4.392683
+Toulouse Matabiau (Toulouse),stop_area:SNCF:87611004,Toulouse Matabiau (Toulouse),43.611206,1.453616
+Le Toec (Toulouse),stop_area:SNCF:87353573,Le Toec (Toulouse),43.595554,1.401371
+Lardenne (Toulouse),stop_area:SNCF:87611939,Lardenne (Toulouse),43.596688,1.383056
+Montaudran (Toulouse),stop_area:SNCF:87612010,Montaudran (Toulouse),43.573691,1.480201
+Saint-Agne (Toulouse),stop_area:SNCF:87611301,Saint-Agne (Toulouse),43.579477,1.45012
+Lacourtensourt (Toulouse),stop_area:SNCF:87611434,Lacourtensourt (Toulouse),43.663842,1.41409
+Les Ramassiers (Toulouse),stop_area:SNCF:87353581,Les Ramassiers (Toulouse),43.602399,1.352946
+Saint-Martin du Touch (Toulouse),stop_area:SNCF:87353599,Saint-Martin du Touch (Toulouse),43.599788,1.371855
+Gallieni - Cancéropôle (Toulouse),stop_area:SNCF:87497461,Gallieni - Cancéropôle (Toulouse),43.573088,1.41958
+Marne-la-Vallée - Chessy (Chessy),stop_area:SNCF:87111849,Marne-la-Vallée - Chessy (Chessy),48.869898,2.782626
+La Grande Arche de la Défense (Puteaux),stop_area:SNCF:87758011,La Grande Arche de la Défense (Puteaux),48.891718,2.238212
+Saint-Pierre-des-Corps (Saint-Pierre-des-Corps),stop_area:SNCF:87571240,Saint-Pierre-des-Corps (Saint-Pierre-des-Corps),47.38614,0.723539
+Bordeaux Saint-Jean (Bordeaux),stop_area:SNCF:87581009,Bordeaux Saint-Jean (Bordeaux),44.825873,-0.556697
+Marne la Vallée - Chessy (Chessy),stop_area:SNCF:87754994,Marne la Vallée - Chessy (Chessy),48.869767,2.782218
+Châtelet les Halles (Paris),stop_area:SNCF:87758607,Châtelet les Halles (Paris),48.85983,2.34814
+Auber (Paris),stop_area:SNCF:87758599,Auber (Paris),48.871956,2.330432
+Massy-Palaiseau (Massy),stop_area:SNCF:87393579,Massy-Palaiseau (Massy),48.726421,2.257528
+Nîmes Centre (Nîmes),stop_area:SNCF:87775007,Nîmes Centre (Nîmes),43.832313,4.365872
+Mulhouse (Mulhouse),stop_area:SNCF:87182063,Mulhouse (Mulhouse),47.742691,7.34316
+Laroche - Migennes (Migennes),stop_area:SNCF:87683268,Laroche - Migennes (Migennes),47.960998,3.513191
+Saint-Michel (Paris),stop_area:SNCF:87785436,Saint-Michel (Paris),48.853463,2.345436
+Gare du Nord (Paris),stop_area:SNCF:87271007,Paris Nord (Paris),48.880136,2.354851
+Dijon (Dijon),stop_area:SNCF:87713040,Dijon (Dijon),47.323411,5.027256
+Montbard (Montbard),stop_area:SNCF:87713131,Montbard (Montbard),47.618741,4.336212
+La Défense (Puteaux),stop_area:SNCF:87382218,La Défense (Puteaux),48.89308,2.23763
+Versailles Chantiers (Versailles),stop_area:SNCF:87393009,Versailles Chantiers (Versailles),48.795826,2.135883
+Montereau (Montereau-Fault-Yonne),stop_area:SNCF:87682302,Montereau (Montereau-Fault-Yonne),48.379902,2.94293
+Arras (Arras),stop_area:SNCF:87342014,Arras (Arras),50.286971,2.781314
+Magenta (Paris),stop_area:SNCF:87281873,Magenta (Paris),48.879706,2.358362
+Massy - Palaiseau (Massy),stop_area:SNCF:87393579,Massy-Palaiseau (Massy),48.726421,2.257528
+Aix-en-Provence TGV (Aix-en-Provence),stop_area:SNCF:87319012,Aix-en-Provence TGV (Aix-en-Provence),43.455237,5.317534
+Antibes (Antibes),stop_area:SNCF:87757674,Antibes (Antibes),43.585971,7.119913
+Le Mans (Le Mans),stop_area:SNCF:87396002,Le Mans (Le Mans),47.995615,0.192614
+Paris Gare de Lyon (Paris),stop_area:SNCF:87686006,Paris - Gare de Lyon - Hall 1 & 2 (Paris),48.844945,2.373481
+Aéroport Charles de Gaulle 2 TGV (Tremblay-en-France),stop_area:SNCF:87271494,Aéroport Charles de Gaulle 2 TGV (Tremblay-en-France),49.003618,2.570812
+Champagne-Ardenne TGV (Bezannes),stop_area:SNCF:87171926,Champagne-Ardenne TGV (Bezannes),49.214769,3.994523
+Melun (Melun),stop_area:SNCF:87682005,Melun (Melun),48.527583,2.655349
+Tours (Tours),stop_area:SNCF:87571000,Tours (Tours),47.389694,0.693638
+Massy TGV (Massy),stop_area:SNCF:87393702,Massy TGV (Massy),48.725758,2.261254
+Viroflay Rive Gauche (Viroflay),stop_area:SNCF:87393215,Viroflay Rive Gauche (Viroflay),48.800517,2.171147
+Rouen Rive Droite (Rouen),stop_area:SNCF:87411017,Rouen Rive Droite (Rouen),49.448663,1.094103
+Nîmes Pont-du-Gard (Manduel),stop_area:SNCF:87703975,Nîmes Pont-du-Gard (Manduel),43.816809,4.507678
+Aéroport - Charles-de-Gaulle 2 RER (Tremblay-en-France),stop_area:SNCF:87001479,Aéroport - Charles-de-Gaulle 2 RER (Tremblay-en-France),49.003965,2.570665

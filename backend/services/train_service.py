@@ -63,58 +63,167 @@ class TrainTrajetService(BaseTransportService):
             "Loaded %s gare positions from cache", len(self.gare_positions_df)
         )
 
-    def _compute_section_distance(self, sec: dict[str, Any]):
-        """Compute distance of a section from geojson coordinates (km)."""
-        coords = sec.get("geojson", {}).get("coordinates", [])
-        if len(coords) < 2:
-            return 0.0
-        dist = 0.0
-        for (lon1, lat1), (lon2, lat2) in zip(coords[:-1], coords[1:]):
-            dist += self.calculate_distance(lat1, lon1, lat2, lon2)
-        return dist
-
-    def _trip_stats(self, sections: list[dict[str, Any]]) -> dict[str, Any]:
+    def _trip_stats(
+        self, sections: list[dict[str, Any]], compute_using_google: bool = False
+    ) -> dict[str, Any]:
         """Return totals + per-section breakdown:
         - total CO2 emissions (kgCO2)
         - total distance (km)
         - total time (s)
         - list of per-section stats with from/to
+
+        Consecutive RER/Transilien sections are grouped and replaced with car routes.
         """
         total_co2 = 0.0
         total_dist = 0.0
         total_time = 0
+        waiting_time = 0
         details = []
 
+        corrected_sections = []
         for sec in sections:
-            sec_time = sec.get("duration", 0)
-            sec_dist = self._compute_section_distance(sec)
-            sec_co2 = sec.get("co2_emission", {}).get("value", 0.0) / 1000.0  # g → kg
+            match sec.get("type"):
+                case "crow_fly":
+                    pass
+                case "public_transport":
+                    corrected_sections.append(sec)
+                case "boarding":
+                    waiting_time += sec.get("duration", 0)
+                case "transfer":
+                    waiting_time += sec.get("duration", 0)
+                case "waiting":
+                    waiting_time += sec.get("duration", 0)
+                case _:
+                    self.logger.warning("Unknown section type: %s", sec.get("type"))
+                    corrected_sections.append(sec)
 
-            # Update totals
-            total_time += sec_time
-            total_dist += sec_dist
-            total_co2 += sec_co2
+        i = 0
+        while i < len(corrected_sections):
+            sec = corrected_sections[i]
+            physical_mode = sec.get("display_informations", {}).get("physical_mode")
 
-            # Names (fallback to empty string if missing)
-            from_name = sec.get("from", {}).get("name", "")
-            to_name = sec.get("to", {}).get("name", "")
+            if physical_mode == "RER / Transilien":
+                # Group consecutive RER/Transilien sections
+                rer_group = [sec]
+                j = i + 1
+                while j < len(corrected_sections):
+                    next_sec = corrected_sections[j]
+                    next_physical_mode = next_sec.get("display_informations", {}).get(
+                        "physical_mode"
+                    )
+                    if next_physical_mode == "RER / Transilien":
+                        rer_group.append(next_sec)
+                        j += 1
+                    else:
+                        break
 
-            # Save section detail
-            if sec_dist > 0:
+                # Get coordinates from first section's "from" and last section's "to"
+                first_sec = rer_group[0]
+                last_sec = rer_group[-1]
+
+                from_coord = first_sec["geojson"]["coordinates"][
+                    0
+                ]  # lon, lat in SNCF api
+                to_coord = last_sec["geojson"]["coordinates"][
+                    -1
+                ]  # lon, lat in SNCF api
+
+                from_name = first_sec.get("from", {}).get("name", "")
+                to_name = last_sec.get("to", {}).get("name", "")
+                departure_coords = (
+                    float(from_coord[1]),
+                    float(from_coord[0]),
+                )  # lat, lon
+                arrival_coords = (
+                    float(to_coord[1]),
+                    float(to_coord[0]),
+                )  # lat, lon
+
+                if compute_using_google:
+                    car_route = self.car_service.calculate_route(
+                        departure=from_name,
+                        arrival=to_name,
+                        departure_coords=departure_coords,
+                        arrival_coords=arrival_coords,
+                        round_trip=False,
+                    )
+                else:
+                    approximate_distance_km = self.calculate_distance(
+                        departure_coords[0],
+                        departure_coords[1],
+                        arrival_coords[0],
+                        arrival_coords[1],
+                    )
+                    approximate_travel_time_seconds = (
+                        approximate_distance_km * 3600 / 50
+                    )  # 50 km/h
+                    emissions = self.car_service.calculate_emissions(
+                        approximate_distance_km
+                    )
+                    car_route = RouteData(
+                        departure=from_name,
+                        arrival=to_name,
+                        travel_time_seconds=approximate_travel_time_seconds,
+                        distance_km=approximate_distance_km,
+                        emissions_kg_co2=emissions,
+                        transport_type="car",
+                        route_details=None,
+                    )
+                total_time += car_route.travel_time_seconds
+                total_dist += car_route.distance_km
+                total_co2 += car_route.emissions_kg_co2
+
                 details.append(
                     {
                         "from": from_name,
                         "to": to_name,
-                        "type": sec.get("type", "unknown"),
-                        "distance_km": sec_dist,
-                        "co2_kg": sec_co2,
-                        "time_s": sec_time,
+                        "type": "car",
+                        "distance_km": car_route.distance_km,
+                        "co2_kg": car_route.emissions_kg_co2,
+                        "time_s": car_route.travel_time_seconds,
                     }
                 )
+
+                # Skip all sections in the group
+                i = j
+            else:
+                # Process non-RER/Transilien sections normally
+                sec_time = sec.get("duration", 0)
+                sec_dist = (
+                    sec.get("geojson", {}).get("properties", [{}])[0].get("length", 0)
+                    / 1000.0
+                )  # m → km
+                sec_co2 = (
+                    sec.get("co2_emission", {}).get("value", 0.0) / 1000.0
+                )  # g → kg
+
+                # Update totals
+                total_time += sec_time
+                total_dist += sec_dist
+                total_co2 += sec_co2
+
+                # Names (fallback to empty string if missing)
+                from_name = sec.get("from", {}).get("name", "")
+                to_name = sec.get("to", {}).get("name", "")
+
+                # Save section detail
+                if sec_dist > 0:
+                    details.append(
+                        {
+                            "from": from_name,
+                            "to": to_name,
+                            "type": sec.get("type", "unknown"),
+                            "distance_km": sec_dist,
+                            "co2_kg": sec_co2,
+                            "time_s": sec_time,
+                        }
+                    )
+                i += 1
+
         return {
             "carbon_emission_kgCO2": total_co2,
             "distance_km": total_dist,
-            "duration_s": total_time,
+            "duration_s": total_time + waiting_time,
             "details": details,
         }
 
@@ -233,6 +342,7 @@ class TrainTrajetService(BaseTransportService):
                 gare_departure_row["latitude"],
                 gare_departure_row["longitude"],
             ),
+            round_trip=True,
         )
         car_leg_2 = self.car_service.calculate_route(
             departure=gare_arrival_row["stadium_name"],
@@ -242,6 +352,7 @@ class TrainTrajetService(BaseTransportService):
                 gare_arrival_row["latitude"],
                 gare_arrival_row["longitude"],
             ),
+            round_trip=True,
         )
 
         # Calculate totals for round trip (2x both legs)
@@ -308,7 +419,7 @@ class TrainTrajetService(BaseTransportService):
         Returns:
             RouteData object or None if calculation fails
         """
-        # get closest station
+        # get closest stations
         stop_area_departures: List[str] = self.gare_positions_df[
             self.gare_positions_df["team_name"] == departure
         ]["stop_area_id"].tolist()
@@ -354,9 +465,13 @@ class TrainTrajetService(BaseTransportService):
         # train part
         fastest_train = min(
             week_trains,
-            key=lambda train: self._trip_stats(train["sections"])["duration_s"],
+            key=lambda train: self._trip_stats(
+                train["sections"], compute_using_google=False
+            )["duration_s"],
         )
-        fastest_train_route = self._trip_stats(fastest_train["sections"])
+        fastest_train_route = self._trip_stats(
+            fastest_train["sections"], compute_using_google=True
+        )
 
         # car part
         car_route: RouteData = self._calculate_car_part(

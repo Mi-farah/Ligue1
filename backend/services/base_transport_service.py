@@ -382,7 +382,6 @@ class BaseTransportService(ABC):
     ) -> float:
         """Calculate the great circle distance between two points in kilometers."""
         R = 6371.0  # Earth's radius in kilometers
-
         dlat = radians(lat2 - lat1)
         dlon = radians(lon2 - lon1)
         lat1 = radians(lat1)
@@ -579,7 +578,6 @@ class BaseTransportService(ABC):
         )
 
         for i, stadium_row in self.stadium_df.iterrows():
-            print(i)
             departure = stadium_row["Team"]  # Team name
             departure_coords = (
                 stadium_row["latitude"],

@@ -20,11 +20,11 @@ def main():
     # if train_service.test_google_maps_request_connexion():
     train_service.run_complete_analysis()
 
-    # if plane_service.test_google_maps_request_connexion():
-    plane_service.run_complete_analysis()
+    # # if plane_service.test_google_maps_request_connexion():
+    # plane_service.run_complete_analysis()
 
-    # if car_service.test_google_maps_request_connexion():
-    car_service.run_complete_analysis()
+    # # if car_service.test_google_maps_request_connexion():
+    # car_service.run_complete_analysis()
 
 
 if __name__ == "__main__":
