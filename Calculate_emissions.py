@@ -69,28 +69,68 @@ def main():
     Calculate the emissions and time for each transport mode.
     """
     # Calculate the emissions and time for each transport mode
+    list_visiting_team: list[str] = []
+    list_hosting_team: list[str] = []
+    list_transport: list[str] =[]
+    list_id: list[float] = []
+    list_aller_retour: list[str] =[]
     list_emissions: list[float] = []
     list_time: list[float] = []
     list_distance: list[float] = []
+    i=1
     for _, row in reconstructed_data.iterrows():
         visiting_team = row["Visiting team"]
         hosting_team = row["Host team"]
         transport = row["Transport"]
-
-        emission, time, distance = get_emissions_and_time(
-            visiting_team, hosting_team, transport.lower()
-        )
-
-        # if the transport is not bus, we add the emissions of the bus for the empty bus trip
-        if transport != "bus" and visiting_team != hosting_team:
-            emission_bus1, _, _d_ = get_emissions_and_time(
-                visiting_team, hosting_team, "bus".lower()
+        list_visiting_team.append(visiting_team)
+        list_hosting_team.append(hosting_team)
+        list_visiting_team.append(visiting_team)
+        list_hosting_team.append(hosting_team)
+        if transport=="Aller en bus\nRetour en avion":
+            emission_aller, time_aller, distance_aller = get_emissions_and_time(
+            visiting_team, hosting_team, "bus"
             )
-            emission += emission_bus1
+            emission_retour, time_retour, distance_retour = get_emissions_and_time(
+            visiting_team, hosting_team, "avion"
+            )
+            list_id.append(i)
+            list_transport.append("bus")
+            list_aller_retour.append("aller")
+            list_emissions.append(emission_aller/2)
+            list_time.append(time_aller/2)
+            list_distance.append(distance_aller/2)
+            list_id.append(i)
+            list_aller_retour.append("retour")
+            list_transport.append("avion")
+            list_emissions.append(emission_retour/2)
+            list_time.append(time_retour/2)
+            list_distance.append(distance_retour/2)
+            i+=1
+        else:
+            emission, time, distance = get_emissions_and_time(
+                visiting_team, hosting_team, transport.lower()
+            )
 
-        list_emissions.append(emission)
-        list_time.append(time)
-        list_distance.append(distance)
+            # if the transport is not bus, we add the emissions of the bus for the empty bus trip
+            if transport != "bus" and visiting_team != hosting_team:
+                emission_bus1, _, _d_ = get_emissions_and_time(
+                    visiting_team, hosting_team, "bus".lower()
+                )
+                emission += emission_bus1
+
+            list_id.append(i)
+            list_aller_retour.append("aller")
+            list_transport.append(transport)
+            list_emissions.append(emission/2)
+            list_time.append(time/2)
+            list_distance.append(distance/2)
+            list_id.append(i)
+            list_transport.append(transport)
+            list_aller_retour.append("retour")
+            list_emissions.append(emission/2)
+            list_time.append(time/2)
+            list_distance.append(distance/2)
+            i+=1
 
     # Calculate the alternative emissions and time
     list_alternative_emissions = []
@@ -110,27 +150,45 @@ def main():
             )
 
             if time_bus < time_train:
-                list_alternative_emissions.append(emission_bus)
-                list_alternative_emissions_wo_bus.append(emission_bus)
-                list_alternative_time.append(time_bus)
-                list_alternative_distance.append(distance_bus)
+                list_alternative_emissions.append(emission_bus/2)
+                list_alternative_emissions_wo_bus.append(emission_bus/2)
+                list_alternative_time.append(time_bus/2)
+                list_alternative_distance.append(distance_bus/2)
+                list_alternative_emissions.append(emission_bus/2)
+                list_alternative_emissions_wo_bus.append(emission_bus/2)
+                list_alternative_time.append(time_bus/2)
+                list_alternative_distance.append(distance_bus/2)
+                
 
             # If the time of the train is less than the time of the bus, add the emissions and time of the bus
             # we prefer the train, and add the emissions of the bus for the empty bus trip
             else:
                 emission_train_w_bus = emission_train + emission_bus
-                list_alternative_emissions.append(emission_train_w_bus)
-                list_alternative_emissions_wo_bus.append(emission_train)
-                list_alternative_time.append(time_train)
-                list_alternative_distance.append(distance_train)
+                list_alternative_emissions.append(emission_train_w_bus/2)
+                list_alternative_emissions_wo_bus.append(emission_train/2)
+                list_alternative_time.append(time_train/2)
+                list_alternative_distance.append(distance_train/2)
+                list_alternative_emissions.append(emission_train_w_bus/2)
+                list_alternative_emissions_wo_bus.append(emission_train/2)
+                list_alternative_time.append(time_train/2)
+                list_alternative_distance.append(distance_train/2)
         else:
+            list_alternative_emissions.append(0)
+            list_alternative_emissions_wo_bus.append(0)
+            list_alternative_time.append(0)
+            list_alternative_distance.append(0)
             list_alternative_emissions.append(0)
             list_alternative_emissions_wo_bus.append(0)
             list_alternative_time.append(0)
             list_alternative_distance.append(0)
 
     # Create the final dataframe
-    final_df = reconstructed_data.copy()
+    final_df = pd.DataFrame({})
+    final_df["Id"]=list_id
+    final_df["Visiting team"]=list_visiting_team
+    final_df["Hosting team"]= list_hosting_team
+    final_df["étape"]= list_aller_retour
+    final_df["transport"]= list_transport
     final_df["emissions_kg_co2"] = list_emissions
     final_df["travel_time_seconds"] = list_time
     final_df["distance_km"] = list_distance
