@@ -435,11 +435,13 @@ class TrainTrajetService(BaseTransportService):
         for stop_area_departure in tqdm(stop_area_departures):
             for stop_area_arrival in stop_area_arrivals:
                 new_week_trains = self._get_sncf_journeys(
-                    stop_area_departure,
-                    stop_area_arrival,
-                    datetime.now().replace(hour=7, minute=0, second=0, microsecond=0)
+                    from_id=stop_area_departure,
+                    to_id=stop_area_arrival,
+                    start_date=datetime.now().replace(
+                        hour=7, minute=0, second=0, microsecond=0
+                    )
                     + timedelta(days=2),
-                    3,
+                    n_days=15,
                 )
                 new_week_trains = [
                     {
