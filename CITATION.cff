@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software or data in your reporting, please cite it as below."
+authors:
+  - family-names: "Muhieddine"
+    given-names: "Ugo"
+  - family-names: "Farah"
+    given-names: "Michel"
+  - family-names: "Stührenberg"
+    given-names: "Lou"
+title: "Ligue1 Emissions"
+version: 1.0.0
+date-released: 2026-01-30
+url: "https://github.com/michlougo/Ligue1"
+abstract: >-
+  This project calculates the emissions of Ligue1 teams' travels using train, plane, and car routes.
+keywords:
+  - carbon emissions
+  - data-analysis
+  - france
+  - Ligue1
