@@ -1,6 +1,6 @@
 # Ligue1 team travel CO2 Emissions
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg) ![Version 1.0.0](https://img.shields.io/badge/version-1.0.0-brightgreen)
+![Version 1.0.0](https://img.shields.io/badge/version-1.0.0-brightgreen) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg) ![Attribution: Required](https://img.shields.io/badge/Attribution-Required-orange.svg) ![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)
 
 Estimate CO₂ emissions for Ligue 1 team travel by rail, road, and air. The project combines routing (Google Maps API), emission factors, and reproducible scripts to generate transparent calculations and shareable outputs.
 
@@ -14,6 +14,21 @@ Estimate CO₂ emissions for Ligue 1 team travel by rail, road, and air. The pro
 
 - Python 3.8+ (uv recommended for environment management)
 - Google Maps API key (`GOOGLE_MAPS_API_KEY` in `.env`)
+- SNCF API key (`SNCF_API_KEY` in `.env`, used for train data)
+
+## Getting a Google Maps API key
+- Go to https://console.cloud.google.com and create/select a project.
+- Enable “Maps JavaScript API” and “Directions API”.
+- Create credentials → API key, and restrict it to HTTP referrers or IPs as needed.
+- Copy the key into your `.env` as `GOOGLE_MAPS_API_KEY`.
+> ⚠️ Google occasionally updates the console UI and product names. If screens differ, follow the current Google Cloud instructions for generating a Maps/Directions API key.
+
+## Getting an SNCF API key (for train data)
+- Go to https://www.digital.sncf.com/startup/api and sign up/login.
+- Subscribe to the “API SNCF” (Navitia) offering to generate an API token.
+- From your dashboard, copy the token and keep it private.
+- Add it to your `.env` as `SNCF_API_KEY`.
+> ⚠️ SNCF’s portal and subscription flow may change. If steps differ, follow the latest instructions on the SNCF API portal for obtaining a Navitia token.
 
 ## Setup
 
@@ -26,6 +41,7 @@ Estimate CO₂ emissions for Ligue 1 team travel by rail, road, and air. The pro
 2. Create and populate `.env` at the repo root:
    ```
    GOOGLE_MAPS_API_KEY=your_api_key_here
+   SNCF_API_KEY=your_sncf_api_key_here
    ```
 3. Install dependencies and create the virtual environment:
    ```bash
