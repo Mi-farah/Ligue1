@@ -102,7 +102,7 @@ def main():
             list_id.append(i)
             list_aller_retour.append("retour")
             list_transport.append("avion")
-            list_emissions.append((emission_retour+emission_aller)/2)# Pour prendre en considération le bus à vide
+            list_emissions.append((emission_retour+emission_aller)/2) # Pour prendre en considération le bus à vide
             list_time.append(time_retour/2)
             list_distance.append(distance_retour/2)
             i+=1
@@ -159,8 +159,8 @@ def main():
     list_alternative_distance = []
     list_alternative_emissions_wo_bus = []
 
-    #Scenario2: No plane if alternative <3 hours
-    time_scenario2=3
+    #Scenario2: No plane if alternative <4 hours
+    time_scenario2=4
     list_alternative2_emissions = []
     list_alternative2_time = []
     list_alternative2_distance = []
@@ -173,13 +173,10 @@ def main():
     list_alternative3_distance = []
     list_alternative3_emissions_wo_bus = []
 
-
-    for _, row in reconstructed_data.iterrows():
-        visiting_team = row["Visiting team"]
-        hosting_team = row["Host team"]
-
-        if visiting_team != hosting_team:
-
+    for k in range(len(list_id)):
+        visiting_team=list_visiting_team[k]
+        hosting_team=list_hosting_team[k]
+        if list_transport[k]=="avion":
             emission_plane, time_plane, distance_plane = get_emissions_and_time(
                 visiting_team, hosting_team, "avion"
             )
@@ -189,49 +186,28 @@ def main():
             emission_bus, time_bus, distance_bus = get_emissions_and_time(
                 visiting_team, hosting_team, "bus"
             )
-
-            if time_bus < time_train:
+            if time_bus<time_train:
                 list_alternative_emissions.append(emission_bus/2)
                 list_alternative_emissions_wo_bus.append(emission_bus/2)
                 list_alternative_time.append(time_bus/2)
                 list_alternative_distance.append(distance_bus/2)
-                list_alternative_emissions.append(emission_bus/2)
-                list_alternative_emissions_wo_bus.append(emission_bus/2)
-                list_alternative_time.append(time_bus/2)
-                list_alternative_distance.append(distance_bus/2)
-                if time_bus - 2*3600*time_scenario2 < time_plane:
-                    list_alternative2_emissions.append(emission_bus/2)
-                    list_alternative2_emissions_wo_bus.append(emission_bus/2)
-                    list_alternative2_time.append(time_bus/2)
-                    list_alternative2_distance.append(distance_bus/2)
+                if time_bus < 2*3600*time_scenario2:
                     list_alternative2_emissions.append(emission_bus/2)
                     list_alternative2_emissions_wo_bus.append(emission_bus/2)
                     list_alternative2_time.append(time_bus/2)
                     list_alternative2_distance.append(distance_bus/2)
 
-                    list_alternative3_emissions.append(emission_bus/2)
-                    list_alternative3_emissions_wo_bus.append(emission_bus/2)
-                    list_alternative3_time.append(time_bus/2)
-                    list_alternative3_distance.append(distance_bus/2)
                     list_alternative3_emissions.append(emission_bus/2)
                     list_alternative3_emissions_wo_bus.append(emission_bus/2)
                     list_alternative3_time.append(time_bus/2)
                     list_alternative3_distance.append(distance_bus/2)
                 
-                elif time_bus - 2*3600*time_scenario3 < time_plane:
-                    list_alternative2_emissions.append((emission_plane+emission_bus)/2)
-                    list_alternative2_emissions_wo_bus.append(emission_plane/2)
-                    list_alternative2_time.append(time_plane/2)
-                    list_alternative2_distance.append(distance_plane/2)
+                elif time_bus < 2*3600*time_scenario3:
                     list_alternative2_emissions.append((emission_plane+emission_bus)/2)
                     list_alternative2_emissions_wo_bus.append(emission_plane/2)
                     list_alternative2_time.append(time_plane/2)
                     list_alternative2_distance.append(distance_plane/2)
 
-                    list_alternative3_emissions.append(emission_bus/2)
-                    list_alternative3_emissions_wo_bus.append(emission_bus/2)
-                    list_alternative3_time.append(time_bus/2)
-                    list_alternative3_distance.append(distance_bus/2)
                     list_alternative3_emissions.append(emission_bus/2)
                     list_alternative3_emissions_wo_bus.append(emission_bus/2)
                     list_alternative3_time.append(time_bus/2)
@@ -241,68 +217,34 @@ def main():
                     list_alternative2_emissions_wo_bus.append(emission_plane/2)
                     list_alternative2_time.append(time_plane/2)
                     list_alternative2_distance.append(distance_plane/2)
-                    list_alternative2_emissions.append((emission_plane+emission_bus)/2)
-                    list_alternative2_emissions_wo_bus.append(emission_plane/2)
-                    list_alternative2_time.append(time_plane/2)
-                    list_alternative2_distance.append(distance_plane/2)
 
                     list_alternative3_emissions.append((emission_plane+emission_bus)/2)
                     list_alternative3_emissions_wo_bus.append(emission_plane/2)
                     list_alternative3_time.append(time_plane/2)
                     list_alternative3_distance.append(distance_plane/2)
-                    list_alternative3_emissions.append((emission_plane+emission_bus)/2)
-                    list_alternative3_emissions_wo_bus.append(emission_plane/2)
-                    list_alternative3_time.append(time_plane/2)
-                    list_alternative3_distance.append(distance_plane/2)
-
-                
-
-            # If the time of the train is less than the time of the bus, add the emissions and time of the bus
-            # we prefer the train, and add the emissions of the bus for the empty bus trip
             else:
                 emission_train_w_bus = emission_train + emission_bus
                 list_alternative_emissions.append(emission_train_w_bus/2)
                 list_alternative_emissions_wo_bus.append(emission_train/2)
                 list_alternative_time.append(time_train/2)
                 list_alternative_distance.append(distance_train/2)
-                list_alternative_emissions.append(emission_train_w_bus/2)
-                list_alternative_emissions_wo_bus.append(emission_train/2)
-                list_alternative_time.append(time_train/2)
-                list_alternative_distance.append(distance_train/2)
-
-                if time_train - 2*3600*time_scenario2 < time_plane:
-                    list_alternative2_emissions.append(emission_train_w_bus/2)
-                    list_alternative2_emissions_wo_bus.append(emission_train/2)
-                    list_alternative2_time.append(time_train/2)
-                    list_alternative2_distance.append(distance_train/2)
+                if time_train < 2*3600*time_scenario2:
                     list_alternative2_emissions.append(emission_train_w_bus/2)
                     list_alternative2_emissions_wo_bus.append(emission_train/2)
                     list_alternative2_time.append(time_train/2)
                     list_alternative2_distance.append(distance_train/2)
 
-                    list_alternative3_emissions.append(emission_train_w_bus/2)
-                    list_alternative3_emissions_wo_bus.append(emission_train/2)
-                    list_alternative3_time.append(time_train/2)
-                    list_alternative3_distance.append(distance_train/2)
                     list_alternative3_emissions.append(emission_train_w_bus/2)
                     list_alternative3_emissions_wo_bus.append(emission_train/2)
                     list_alternative3_time.append(time_train/2)
                     list_alternative3_distance.append(distance_train/2)
                 
-                elif time_train - 2*3600*time_scenario3 < time_plane:
-                    list_alternative2_emissions.append((emission_plane+emission_bus)/2)
-                    list_alternative2_emissions_wo_bus.append(emission_plane/2)
-                    list_alternative2_time.append(time_plane/2)
-                    list_alternative2_distance.append(distance_plane/2)
+                elif time_train < 2*3600*time_scenario3:
                     list_alternative2_emissions.append((emission_plane+emission_bus)/2)
                     list_alternative2_emissions_wo_bus.append(emission_plane/2)
                     list_alternative2_time.append(time_plane/2)
                     list_alternative2_distance.append(distance_plane/2)
 
-                    list_alternative3_emissions.append(emission_train_w_bus/2)
-                    list_alternative3_emissions_wo_bus.append(emission_train/2)
-                    list_alternative3_time.append(time_train/2)
-                    list_alternative3_distance.append(distance_train/2)
                     list_alternative3_emissions.append(emission_train_w_bus/2)
                     list_alternative3_emissions_wo_bus.append(emission_train/2)
                     list_alternative3_time.append(time_train/2)
@@ -312,43 +254,48 @@ def main():
                     list_alternative2_emissions_wo_bus.append(emission_plane/2)
                     list_alternative2_time.append(time_plane/2)
                     list_alternative2_distance.append(distance_plane/2)
-                    list_alternative2_emissions.append((emission_plane+emission_bus)/2)
-                    list_alternative2_emissions_wo_bus.append(emission_plane/2)
-                    list_alternative2_time.append(time_plane/2)
-                    list_alternative2_distance.append(distance_plane/2)
 
                     list_alternative3_emissions.append((emission_plane+emission_bus)/2)
                     list_alternative3_emissions_wo_bus.append(emission_plane/2)
                     list_alternative3_time.append(time_plane/2)
                     list_alternative3_distance.append(distance_plane/2)
-                    list_alternative3_emissions.append((emission_plane+emission_bus)/2)
-                    list_alternative3_emissions_wo_bus.append(emission_plane/2)
-                    list_alternative3_time.append(time_plane/2)
-                    list_alternative3_distance.append(distance_plane/2)
-
+        elif list_transport[k]=="train":
+            list_alternative_emissions.append(list_emissions[k])
+            list_alternative_emissions_wo_bus.append(list_emissions[k]-emission_bus/2)
+            list_alternative_time.append(list_time[k])
+            list_alternative_distance.append(list_distance[k])
+            list_alternative2_emissions.append(list_emissions[k])
+            list_alternative2_emissions_wo_bus.append(list_emissions[k]-emission_bus/2)
+            list_alternative2_time.append(list_time[k])
+            list_alternative2_distance.append(list_distance[k])
+            list_alternative3_emissions.append(list_emissions[k])
+            list_alternative3_emissions_wo_bus.append(list_emissions[k]-emission_bus/2)
+            list_alternative3_time.append(list_time[k])
+            list_alternative3_distance.append(list_distance[k])
+        elif list_transport[k]=="bus":
+            list_alternative_emissions.append(list_emissions[k])
+            list_alternative_emissions_wo_bus.append(list_emissions[k])
+            list_alternative_time.append(list_time[k])
+            list_alternative_distance.append(list_distance[k])
+            list_alternative2_emissions.append(list_emissions[k])
+            list_alternative2_emissions_wo_bus.append(list_emissions[k])
+            list_alternative2_time.append(list_time[k])
+            list_alternative2_distance.append(list_distance[k])
+            list_alternative3_emissions.append(list_emissions[k])
+            list_alternative3_emissions_wo_bus.append(list_emissions[k])
+            list_alternative3_time.append(list_time[k])
+            list_alternative3_distance.append(list_distance[k])
         else:
             list_alternative_emissions.append(0)
             list_alternative_emissions_wo_bus.append(0)
             list_alternative_time.append(0)
             list_alternative_distance.append(0)
-            list_alternative_emissions.append(0)
-            list_alternative_emissions_wo_bus.append(0)
-            list_alternative_time.append(0)
-            list_alternative_distance.append(0)
 
             list_alternative2_emissions.append(0)
             list_alternative2_emissions_wo_bus.append(0)
             list_alternative2_time.append(0)
             list_alternative2_distance.append(0)
-            list_alternative2_emissions.append(0)
-            list_alternative2_emissions_wo_bus.append(0)
-            list_alternative2_time.append(0)
-            list_alternative2_distance.append(0)
 
-            list_alternative3_emissions.append(0)
-            list_alternative3_emissions_wo_bus.append(0)
-            list_alternative3_time.append(0)
-            list_alternative3_distance.append(0)
             list_alternative3_emissions.append(0)
             list_alternative3_emissions_wo_bus.append(0)
             list_alternative3_time.append(0)
